@@ -4,9 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CoffeeAI Control - Sistema Inteligente de Cafeteira</title>
+    <!-- Fontes -->
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Ícones -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- Charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
+        /* Variáveis CSS */
         :root {
             --primary-neon: #00ff88;
             --primary-glow: #00cc6a;
@@ -22,6 +27,7 @@
             --success: #4CAF50;
             --warning: #ff9800;
             --error: #f44336;
+            --card-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
         }
 
         * {
@@ -38,20 +44,22 @@
             line-height: 1.6;
         }
 
+        /* Layout Grid */
         .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 2rem;
             display: grid;
-            gap: 2rem;
-            grid-template-columns: 300px 1fr;
             grid-template-areas: 
-                "header header"
-                "nav nav"
-                "sidebar main";
+                'header header'
+                'nav nav'
+                'sidebar main';
+            grid-template-columns: 300px 1fr;
+            gap: 1.5rem;
+            padding: 1.5rem;
+            max-width: 1600px;
+            margin: 0 auto;
+            min-height: 100vh;
         }
 
-        /* Header Styling */
+        /* Header */
         .header {
             grid-area: header;
             text-align: center;
@@ -64,17 +72,6 @@
             overflow: hidden;
         }
 
-        .header h1 {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 3rem;
-            margin-bottom: 0.5rem;
-            background: linear-gradient(45deg, var(--primary-neon), var(--accent-blue));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-        }
-
         .header::before {
             content: '';
             position: absolute;
@@ -82,45 +79,56 @@
             left: -50%;
             width: 200%;
             height: 200%;
-            background: linear-gradient(45deg, transparent, var(--primary-neon), transparent);
+            background: linear-gradient(
+                45deg,
+                transparent,
+                var(--primary-neon),
+                transparent
+            );
             animation: headerGlow 8s linear infinite;
             opacity: 0.1;
         }
 
-        @keyframes headerGlow {
-            0% { transform: translateX(-50%) translateY(-50%) rotate(0deg); }
-            100% { transform: translateX(-50%) translateY(-50%) rotate(360deg); }
+        .header h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 3rem;
+            background: linear-gradient(45deg, var(--primary-neon), var(--accent-blue));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 0.5rem;
         }
 
-        /* Navigation Bar */
+        /* Navegação Principal */
         .nav-container {
             grid-area: nav;
             background: var(--glass-bg);
-            padding: 1rem;
             border-radius: 15px;
-            border: 1px solid var(--glass-border);
+            padding: 1rem;
             backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
         }
 
         .nav-menu {
             display: flex;
             justify-content: center;
-            gap: 1.5rem;
-            list-style: none;
+            gap: 1rem;
             flex-wrap: wrap;
+            list-style: none;
         }
 
         .nav-item a {
-            color: var(--text-light);
-            text-decoration: none;
-            padding: 0.8rem 1.5rem;
-            border-radius: 8px;
-            transition: all 0.3s ease;
             display: flex;
             align-items: center;
             gap: 0.5rem;
+            color: var(--text-light);
+            text-decoration: none;
+            padding: 0.8rem 1.2rem;
+            border-radius: 8px;
             background: rgba(0, 0, 0, 0.2);
             border: 1px solid var(--glass-border);
+            transition: all 0.3s ease;
         }
 
         .nav-item a:hover {
@@ -130,7 +138,7 @@
             box-shadow: 0 5px 15px rgba(0, 255, 136, 0.3);
         }
 
-        /* Sidebar Styling */
+        /* Sidebar */
         .sidebar {
             grid-area: sidebar;
             display: flex;
@@ -148,8 +156,8 @@
 
         .control-panel h2 {
             font-family: 'Orbitron', sans-serif;
-            margin-bottom: 1rem;
             color: var(--primary-neon);
+            margin-bottom: 1rem;
         }
 
         .control-button {
@@ -186,12 +194,10 @@
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
         }
 
+        /* Status Panel */
         .status-panel {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-            padding: 1.5rem;
             background: var(--glass-bg);
+            padding: 1.5rem;
             border-radius: 15px;
             border: 1px solid var(--glass-border);
             backdrop-filter: blur(10px);
@@ -202,12 +208,12 @@
             background: rgba(0, 0, 0, 0.3);
             border-radius: 10px;
             border: 1px solid var(--glass-border);
+            margin-bottom: 1rem;
             transition: transform 0.3s ease;
         }
 
         .status-item:hover {
             transform: translateY(-2px);
-            background: rgba(0, 0, 0, 0.4);
         }
 
         .status-indicator {
@@ -323,6 +329,7 @@
             margin-right: 20%;
         }
 
+        /* Input Area */
         .input-container {
             display: flex;
             gap: 1rem;
@@ -340,7 +347,6 @@
             background: rgba(255, 255, 255, 0.1);
             color: var(--text-light);
             font-size: 1rem;
-            transition: all 0.3s ease;
         }
 
         .chat-input:focus {
@@ -363,7 +369,6 @@
             align-items: center;
             justify-content: center;
             gap: 0.5rem;
-            font-family: 'Orbitron', sans-serif;
         }
 
         .send-button:hover:not(:disabled) {
@@ -375,11 +380,9 @@
         .send-button:disabled {
             background: #666;
             cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
         }
 
-        /* Modals */
+        /* Modais */
         .modal {
             display: none;
             position: fixed;
@@ -406,22 +409,25 @@
             animation: modalSlide 0.3s ease;
         }
 
-        @keyframes modalSlide {
-            from {
-                opacity: 0;
-                transform: translateY(-50px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .modal-title {
+            font-family: 'Orbitron', sans-serif;
+            color: var(--primary-neon);
+            font-size: 1.5rem;
         }
 
         .close-modal {
-            position: absolute;
-            right: 1.5rem;
-            top: 1.5rem;
             color: var(--text-light);
+            background: none;
+            border: none;
             font-size: 1.5rem;
             cursor: pointer;
             transition: all 0.3s ease;
@@ -432,65 +438,43 @@
             transform: rotate(90deg);
         }
 
-        /* Content Grids */
-        .content-grid {
+        /* Cards Grid */
+        .cards-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 1.5rem;
             margin-top: 1.5rem;
         }
 
-        .content-card {
-            background: rgba(255, 255, 255, 0.05);
+        .card {
+            background: var(--glass-bg);
             border: 1px solid var(--glass-border);
             border-radius: 10px;
             padding: 1.5rem;
             transition: all 0.3s ease;
         }
 
-        .content-card:hover {
+        .card:hover {
             transform: translateY(-5px);
-            background: rgba(255, 255, 255, 0.08);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            box-shadow: var(--card-shadow);
         }
 
-        /* Responsive Design */
-        @media (max-width: 1024px) {
-            .container {
-                grid-template-columns: 1fr;
-                grid-template-areas: 
-                    "header"
-                    "nav"
-                    "sidebar"
-                    "main";
-            }
-
-            .sidebar {
-                display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-                gap: 1rem;
-            }
-            
-            .nav-menu {
-                flex-direction: row;
-                flex-wrap: wrap;
-                justify-content: center;
-            }
+        .card-title {
+            font-family: 'Orbitron', sans-serif;
+            color: var(--primary-neon);
+            margin-bottom: 1rem;
         }
 
-        @media (max-width: 768px) {
-            .container {
-                padding: 1rem;
-            }
-            
-            .message {
-                max-width: 90%;
-            }
-            
-            .modal-content {
-                width: 95%;
-                margin: 20px auto;
-            }
+        /* Animations */
+        @keyframes headerGlow {
+            0% { transform: translateX(-50%) translateY(-50%) rotate(0deg); }
+            100% { transform: translateX(-50%) translateY(-50%) rotate(360deg); }
+        }
+
+        @keyframes pulseGlow {
+            0% { transform: scale(1); opacity: 0.8; }
+            50% { transform: scale(1.5); opacity: 0; }
+            100% { transform: scale(1); opacity: 0.8; }
         }
 
         @keyframes slideIn {
@@ -504,10 +488,110 @@
             }
         }
 
-        @keyframes pulseGlow {
-            0% { transform: scale(1); opacity: 0.8; }
-            50% { transform: scale(1.5); opacity: 0; }
-            100% { transform: scale(1); opacity: 0.8; }
+        @keyframes modalSlide {
+            from {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Tabs dentro dos modais */
+        .tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid var(--glass-border);
+            padding-bottom: 1rem;
+        }
+
+        .tab-button {
+            padding: 0.5rem 1rem;
+            border: none;
+            background: var(--glass-bg);
+            color: var(--text-light);
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .tab-button.active {
+            background: var(--primary-neon);
+            color: var(--bg-dark);
+        }
+
+        /* Conteúdo das tabs */
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Badges e Indicators */
+        .badge {
+            padding: 0.2rem 0.5rem;
+            border-radius: 5px;
+            font-size: 0.8rem;
+            margin-left: 0.5rem;
+        }
+
+        .badge-success {
+            background: var(--success);
+            color: var(--text-light);
+        }
+
+        .badge-warning {
+            background: var(--warning);
+            color: var(--bg-dark);
+        }
+
+        .badge-error {
+            background: var(--error);
+            color: var(--text-light);
+        }
+
+        /* Responsividade */
+        @media (max-width: 1024px) {
+            .container {
+                grid-template-columns: 1fr;
+                grid-template-areas: 
+                    'header'
+                    'nav'
+                    'sidebar'
+                    'main';
+            }
+
+            .nav-menu {
+                flex-direction: column;
+            }
+
+            .cards-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .message {
+                max-width: 90%;
+            }
+
+            .modal-content {
+                width: 95%;
+                margin: 20px auto;
+            }
+
+            .tabs {
+                flex-wrap: wrap;
+            }
         }
     </style>
 </head>
@@ -526,8 +610,13 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="#" onclick="showCoffeeTypes()">
-                        <i class="fas fa-coffee"></i> Tipos de Café
+                    <a href="#" onclick="showRecipes()">
+                        <i class="fas fa-coffee"></i> Receitas
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" onclick="showBrewingMethods()">
+                        <i class="fas fa-mortar-pestle"></i> Modos de Preparo
                     </a>
                 </li>
                 <li class="nav-item">
@@ -541,8 +630,13 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="#" onclick="showContact()">
-                        <i class="fas fa-envelope"></i> Contato
+                    <a href="#" onclick="showDocs()">
+                        <i class="fas fa-file-code"></i> Documentação
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" onclick="showFeatures()">
+                        <i class="fas fa-star"></i> Funcionalidades
                     </a>
                 </li>
             </ul>
@@ -598,47 +692,105 @@
     </div>
 
     <!-- Modais -->
+    <!-- Modal do Guia -->
     <div id="guideModal" class="modal">
         <div class="modal-content">
-            <span class="close-modal" onclick="closeModal('guideModal')">&times;</span>
-            <h2>Guia de Uso</h2>
-            <div id="guideContent" class="content-grid"></div>
+            <div class="modal-header">
+                <h2 class="modal-title">Guia de Uso</h2>
+                <button class="close-modal" onclick="closeModal('guideModal')">&times;</button>
+            </div>
+            <div id="guideContent"></div>
         </div>
     </div>
 
-    <div id="coffeeTypesModal" class="modal">
+    <!-- Modal de Receitas -->
+    <div id="recipesModal" class="modal">
         <div class="modal-content">
-            <span class="close-modal" onclick="closeModal('coffeeTypesModal')">&times;</span>
-            <h2>Tipos de Café</h2>
-            <div id="coffeeTypesContent" class="content-grid"></div>
+            <div class="modal-header">
+                <h2 class="modal-title">Receitas de Café</h2>
+                <button class="close-modal" onclick="closeModal('recipesModal')">&times;</button>
+            </div>
+            <div class="tabs" id="recipesTabs">
+                <button class="tab-button active" onclick="showRecipeTab('tradicional')">Tradicionais</button>
+                <button class="tab-button" onclick="showRecipeTab('especiais')">Especiais</button>
+                <button class="tab-button" onclick="showRecipeTab('gelados')">Gelados</button>
+            </div>
+            <div id="recipesContent"></div>
         </div>
     </div>
 
+    <!-- Modal de Modos de Preparo -->
+    <div id="brewingModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Modos de Preparo</h2>
+                <button class="close-modal" onclick="closeModal('brewingModal')">&times;</button>
+            </div>
+            <div id="brewingContent"></div>
+        </div>
+    </div>
+
+    <!-- Modal de Equipamentos -->
     <div id="equipmentModal" class="modal">
         <div class="modal-content">
-            <span class="close-modal" onclick="closeModal('equipmentModal')">&times;</span>
-            <h2>Equipamentos</h2>
-            <div id="equipmentContent" class="content-grid"></div>
+            <div class="modal-header">
+                <h2 class="modal-title">Equipamentos</h2>
+                <button class="close-modal" onclick="closeModal('equipmentModal')">&times;</button>
+            </div>
+            <div class="tabs">
+                <button class="tab-button active" onclick="showEquipmentTab('controllers')">Controladores</button>
+                <button class="tab-button" onclick="showEquipmentTab('sensors')">Sensores</button>
+                <button class="tab-button" onclick="showEquipmentTab('actuators')">Atuadores</button>
+            </div>
+            <div id="equipmentContent"></div>
         </div>
     </div>
 
+    <!-- Modal de Manutenção -->
     <div id="maintenanceModal" class="modal">
         <div class="modal-content">
-            <span class="close-modal" onclick="closeModal('maintenanceModal')">&times;</span>
-            <h2>Manutenção</h2>
-            <div id="maintenanceContent" class="content-grid"></div>
+            <div class="modal-header">
+                <h2 class="modal-title">Manutenção</h2>
+                <button class="close-modal" onclick="closeModal('maintenanceModal')">&times;</button>
+            </div>
+            <div class="tabs">
+                <button class="tab-button active" onclick="showMaintenanceTab('daily')">Diária</button>
+                <button class="tab-button" onclick="showMaintenanceTab('weekly')">Semanal</button>
+                <button class="tab-button" onclick="showMaintenanceTab('monthly')">Mensal</button>
+            </div>
+            <div id="maintenanceContent"></div>
         </div>
     </div>
 
-    <div id="contactModal" class="modal">
+    <!-- Modal de Documentação -->
+    <div id="docsModal" class="modal">
         <div class="modal-content">
-            <span class="close-modal" onclick="closeModal('contactModal')">&times;</span>
-            <h2>Contato</h2>
-            <div id="contactContent"></div>
+            <div class="modal-header">
+                <h2 class="modal-title">Documentação</h2>
+                <button class="close-modal" onclick="closeModal('docsModal')">&times;</button>
+            </div>
+            <div class="tabs">
+                <button class="tab-button active" onclick="showDocsTab('overview')">Visão Geral</button>
+                <button class="tab-button" onclick="showDocsTab('setup')">Instalação</button>
+                <button class="tab-button" onclick="showDocsTab('api')">API</button>
+            </div>
+            <div id="docsContent"></div>
+        </div>
+    </div>
+
+    <!-- Modal de Funcionalidades -->
+    <div id="featuresModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Funcionalidades</h2>
+                <button class="close-modal" onclick="closeModal('featuresModal')">&times;</button>
+            </div>
+            <div id="featuresContent"></div>
         </div>
     </div>
 
     <script>
+        // Variáveis globais
         let conversationId = null;
         let isProcessing = false;
 
@@ -677,7 +829,7 @@
             await sendMessage();
         }
 
-        // Funções do Chat
+        // Chat
         async function sendMessage() {
             if (isProcessing) return;
 
@@ -740,185 +892,324 @@
             const response = await fetch('/guide');
             const guide = await response.json();
             let html = `
-                <div class="content-card">
-                    <h3>Comandos Básicos</h3>
-                    <ul>
-                        ${guide.commands.basic.map(cmd => `<li>${cmd}</li>`).join('')}
-                    </ul>
-                </div>
-                <div class="content-card">
-                    <h3>Comandos Avançados</h3>
-                    <ul>
-                        ${guide.commands.advanced.map(cmd => `<li>${cmd}</li>`).join('')}
-                    </ul>
-                </div>
-                <div class="content-card">
-                    <h3>Dicas</h3>
-                    <ul>
-                        ${guide.tips.map(tip => `<li>${tip}</li>`).join('')}
-                    </ul>
+                <div class="cards-grid">
+                    <div class="card">
+                        <h3 class="card-title">Comandos Básicos</h3>
+                        <ul>
+                            ${guide.basic.commands.map(cmd => `<li>${cmd}</li>`).join('')}
+                        </ul>
+                    </div>
+                    <div class="card">
+                        <h3 class="card-title">Interface</h3>
+                        <ul>
+                            ${guide.basic.interface.map(item => `<li>${item}</li>`).join('')}
+                        </ul>
+                    </div>
+                    <div class="card">
+                        <h3 class="card-title">Funcionalidades Avançadas</h3>
+                        <ul>
+                            ${guide.advanced.features.map(feature => `<li>${feature}</li>`).join('')}
+                        </ul>
+                    </div>
+                    <div class="card">
+                        <h3 class="card-title">Dicas</h3>
+                        <ul>
+                            ${guide.advanced.tips.map(tip => `<li>${tip}</li>`).join('')}
+                        </ul>
+                    </div>
                 </div>
             `;
             document.getElementById('guideContent').innerHTML = html;
             document.getElementById('guideModal').style.display = 'block';
         }
 
-        async function showCoffeeTypes() {
-            const response = await fetch('/coffee-types');
-            const coffeeTypes = await response.json();
-            let html = '';
-            for (const type in coffeeTypes) {
-                const coffee = coffeeTypes[type];
-                html += `
-                    <div class="content-card">
-                        <h3>${coffee.name}</h3>
-                        <p>${coffee.description}</p>
-                        <p>Temperatura: ${coffee.temperature}</p>
-                        <p>Tempo: ${coffee.time}</p>
-                        <h4>Passos:</h4>
-                        <ul>
-                            ${coffee.steps.map(step => `<li>${step}</li>`).join('')}
-                        </ul>
-                        <h4>Dicas:</h4>
-                        <ul>
-                            ${coffee.tips.map(tip => `<li>${tip}</li>`).join('')}
-                        </ul>
-                    </div>
-                `;
+        async function showRecipes() {
+            const response = await fetch('/recipes');
+            const recipes = await response.json();
+            const content = document.getElementById('recipesContent');
+            
+            function renderRecipeTab(category) {
+                const recipesInCategory = recipes[category];
+                let html = '<div class="cards-grid">';
+                
+                for (const [key, recipe] of Object.entries(recipesInCategory)) {
+                    html += `
+                        <div class="card">
+                            <h3 class="card-title">${recipe.name}</h3>
+                            <p>${recipe.description || ''}</p>
+                            <div class="recipe-details">
+                                <p><strong>Temperatura:</strong> ${recipe.temperature}</p>
+                                <p><strong>Tempo:</strong> ${recipe.time || recipe.preparation_time}</p>
+                                ${recipe.ingredients ? `
+                                    <h4>Ingredientes:</h4>
+                                    <ul>
+                                        ${recipe.ingredients.map(ing => `<li>${ing}</li>`).join('')}
+                                    </ul>
+                                ` : ''}
+                                <h4>Passos:</h4>
+                                <ol>
+                                    ${recipe.steps.map(step => `<li>${step}</li>`).join('')}
+                                </ol>
+                                ${recipe.tips ? `
+                                    <h4>Dicas:</h4>
+                                    <ul>
+                                        ${recipe.tips.map(tip => `<li>${tip}</li>`).join('')}
+                                    </ul>
+                                ` : ''}
+                            </div>
+                        </div>
+                    `;
+                }
+                html += '</div>';
+                content.innerHTML = html;
             }
-            document.getElementById('coffeeTypesContent').innerHTML = html;
-            document.getElementById('coffeeTypesModal').style.display = 'block';
+
+            function showRecipeTab(category) {
+                const tabs = document.querySelectorAll('#recipesTabs .tab-button');
+                tabs.forEach(tab => tab.classList.remove('active'));
+                event.target.classList.add('active');
+                renderRecipeTab(category);
+            }
+
+            document.getElementById('recipesModal').style.display = 'block';
+            renderRecipeTab('tradicional'); // Mostra primeira tab por padrão
+            window.showRecipeTab = showRecipeTab;
+        }
+
+        async function showBrewingMethods() {
+            const response = await fetch('/brewing-methods');
+            const methods = await response.json();
+            let html = `
+                <div class="cards-grid">
+                    ${Object.entries(methods).map(([key, method]) => `
+                        <div class="card">
+                            <h3 class="card-title">${method.name}</h3>
+                            <div class="method-details">
+                                ${method.equipment ? `
+                                    <h4>Equipamentos:</h4>
+                                    <ul>
+                                        ${method.equipment.map(eq => `<li>${eq}</li>`).join('')}
+                                    </ul>
+                                ` : ''}
+                                <p><strong>Moagem:</strong> ${method.grind_size || '-'}</p>
+                                <p><strong>Proporção:</strong> ${method.ratio || '-'}</p>
+                                <p><strong>Tempo:</strong> ${method.time || '-'}</p>
+                                <p><strong>Temperatura:</strong> ${method.temperature || '-'}</p>
+                                ${method.steps ? `
+                                    <h4>Passos:</h4>
+                                    <ol>
+                                        ${method.steps.map(step => `<li>${step}</li>`).join('')}
+                                    </ol>
+                                ` : ''}
+                                ${method.troubleshooting ? `
+                                    <h4>Solução de Problemas:</h4>
+                                    <ul>
+                                        ${Object.entries(method.troubleshooting).map(([problem, solution]) => 
+                                            `<li><strong>${problem}:</strong> ${solution}</li>`
+                                        ).join('')}
+                                    </ul>
+                                ` : ''}
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+            document.getElementById('brewingContent').innerHTML = html;
+            document.getElementById('brewingModal').style.display = 'block';
         }
 
         async function showEquipment() {
             const response = await fetch('/equipment');
             const equipment = await response.json();
-            let html = `
-                <div class="content-card">
-                    <h3>Controladores</h3>
-                    ${Object.entries(equipment.controllers).map(([key, controller]) => `
-                        <div>
-                            <h4>${controller.name}</h4>
-                            <p>Função: ${controller.function}</p>
-                            <ul>
-                                ${controller.specs.map(spec => `<li>${spec}</li>`).join('')}
-                            </ul>
-                        </div>
-                    `).join('')}
-                </div>
-                <div class="content-card">
-                    <h3>Sensores</h3>
-                    ${Object.entries(equipment.sensors).map(([key, sensor]) => `
-                        <div>
-                            <h4>${sensor.model}</h4>
-                            <p>Tipo: ${sensor.type}</p>
-                            <p>Faixa: ${sensor.range}</p>
-                            <p>Status: ${sensor.status}</p>
-                        </div>
-                    `).join('')}
-                </div>
-            `;
-            document.getElementById('equipmentContent').innerHTML = html;
+            
+            function renderEquipmentTab(category) {
+                let html = '<div class="cards-grid">';
+                
+                if (category === 'controllers') {
+                    Object.entries(equipment.controllers).forEach(([key, controller]) => {
+                        html += `
+                            <div class="card">
+                                <h3 class="card-title">${controller.name}</h3>
+                                <p><strong>Função:</strong> ${controller.function}</p>
+                                <h4>Especificações:</h4>
+                                <ul>
+                                    ${controller.specs.map(spec => `<li>${spec}</li>`).join('')}
+                                </ul>
+                                ${controller.pins ? `
+                                    <h4>Portas:</h4>
+                                    <ul>
+                                        ${Object.entries(controller.pins).map(([pin, use]) => 
+                                            `<li>${pin}: ${use}</li>`
+                                        ).join('')}
+                                    </ul>
+                                ` : ''}
+                            </div>
+                        `;
+                    });
+                } else {
+                    Object.entries(equipment[category]).forEach(([key, device]) => {
+                        html += `
+                            <div class="card">
+                                <h3 class="card-title">${device.model}</h3>
+                                <p><strong>Tipo:</strong> ${device.type}</p>
+                                <p><strong>Faixa:</strong> ${device.range}</p>
+                                ${device.precision ? `<p><strong>Precisão:</strong> ${device.precision}</p>` : ''}
+                                <span class="badge badge-${device.status === 'active' ? 'success' : 'warning'}">
+                                    ${device.status}
+                                </span>
+                            </div>
+                        `;
+                    });
+                }
+                html += '</div>';
+                document.getElementById('equipmentContent').innerHTML = html;
+            }
+
+            function showEquipmentTab(category) {
+                const tabs = document.querySelectorAll('.tabs .tab-button');
+                tabs.forEach(tab => tab.classList.remove('active'));
+                event.target.classList.add('active');
+                renderEquipmentTab(category);
+            }
+
             document.getElementById('equipmentModal').style.display = 'block';
+            renderEquipmentTab('controllers'); // Mostra primeira tab por padrão
+            window.showEquipmentTab = showEquipmentTab;
         }
 
         async function showMaintenance() {
             const response = await fetch('/maintenance-guide');
             const guide = await response.json();
-            let html = `
-                <div class="content-card">
-                    <h3>Manutenção Diária</h3>
-                    <ul>
-                        ${guide.daily.map(task => `
-                            <li>
-                                <strong>${task.task}</strong>
-                                <p>${task.description}</p>
-                                <small>Importância: ${task.importance}</small>
-                            </li>
-                        `).join('')}
-                    </ul>
-                </div>
-                <div class="content-card">
-                    <h3>Manutenção Semanal</h3>
-                    <ul>
-                        ${guide.weekly.map(task => `
-                            <li>
-                                <strong>${task.task}</strong>
-                                <p>${task.description}</p>
-                                <small>Importância: ${task.importance}</small>
-                            </li>
-                        `).join('')}
-                    </ul>
-                </div>
-                <div class="content-card">
-                    <h3>Manutenção Mensal</h3>
-                    <ul>
-                        ${guide.monthly.map(task => `
-                            <li>
-                                <strong>${task.task}</strong>
-                                <p>${task.description}</p>
-                                <small>Importância: ${task.importance}</small>
-                            </li>
-                        `).join('')}
-                    </ul>
-                </div>
-            `;
-            document.getElementById('maintenanceContent').innerHTML = html;
-            document.getElementById('maintenanceModal').style.display = 'block';
-        }
-
-        function showContact() {
-            let html = `
-                <form class="content-card" onsubmit="submitContact(event)">
-                    <div class="form-group">
-                        <label>Nome:</label>
-                        <input type="text" required class="chat-input">
-                    </div>
-                    <div class="form-group">
-                        <label>Email:</label>
-                        <input type="email" required class="chat-input">
-                    </div>
-                    <div class="form-group">
-                        <label>Assunto:</label>
-                        <input type="text" required class="chat-input">
-                    </div>
-                    <div class="form-group">
-                        <label>Mensagem:</label>
-                        <textarea required class="chat-input" rows="4"></textarea>
-                    </div>
-                    <button type="submit" class="send-button">
-                        <i class="fas fa-paper-plane"></i> Enviar Mensagem
-                    </button>
-                </form>
-            `;
-            document.getElementById('contactContent').innerHTML = html;
-            document.getElementById('contactModal').style.display = 'block';
-        }
-
-        async function submitContact(event) {
-            event.preventDefault();
-            const form = event.target;
-            const formData = new FormData(form);
             
-            try {
-                const response = await fetch('/send-contact', {
-                    method: 'POST',
-                    body: JSON.stringify(Object.fromEntries(formData)),
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
+            function renderMaintenanceTab(period) {
+                let html = '<div class="cards-grid">';
+                guide[period].forEach(task => {
+                    html += `
+                        <div class="card">
+                            <h3 class="card-title">${task.task}</h3>
+                            <p>${task.description}</p>
+                            <span class="badge badge-${
+                                task.importance === 'Alta' ? 'error' : 
+                                task.importance === 'Média' ? 'warning' : 'success'
+                            }">
+                                ${task.importance}
+                            </span>
+                            ${task.frequency ? `<p><strong>Frequência:</strong> ${task.frequency}</p>` : ''}
+                            ${task.steps ? `
+                                <h4>Passos:</h4>
+                                <ol>
+                                    ${task.steps.map(step => `<li>${step}</li>`).join('')}
+                                </ol>
+                            ` : ''}
+                        </div>
+                    `;
                 });
-                
-                if (response.ok) {
-                    alert('Mensagem enviada com sucesso!');
-                    closeModal('contactModal');
-                } else {
-                    throw new Error('Erro ao enviar mensagem');
-                }
-            } catch (error) {
-                alert('Erro ao enviar mensagem. Tente novamente mais tarde.');
-                console.error('Erro:', error);
+                html += '</div>';
+                document.getElementById('maintenanceContent').innerHTML = html;
             }
+
+            function showMaintenanceTab(period) {
+                const tabs = document.querySelectorAll('.tabs .tab-button');
+                tabs.forEach(tab => tab.classList.remove('active'));
+                event.target.classList.add('active');
+                renderMaintenanceTab(period);
+            }
+
+            document.getElementById('maintenanceModal').style.display = 'block';
+            renderMaintenanceTab('daily'); // Mostra primeira tab por padrão
+            window.showMaintenanceTab = showMaintenanceTab;
+        }
+
+        async function showDocs() {
+            const response = await fetch('/docs');
+            const docs = await response.json();
+            
+            function renderDocsTab(section) {
+                let html = '';
+                const content = docs[section];
+
+                if (section === 'overview') {
+                    html = `
+                        <div class="card">
+                            <h3 class="card-title">${content.title}</h3>
+                            <p>${content.description}</p>
+                            <h4>Componentes:</h4>
+                            <ul>
+                                ${content.components.map(comp => `<li>${comp}</li>`).join('')}
+                            </ul>
+                        </div>
+                    `;
+                } else if (section === 'setup') {
+                    html = `
+                        <div class="cards-grid">
+                            <div class="card">
+                                <h3 class="card-title">Hardware Necessário</h3>
+                                <ul>
+                                    ${content.requirements.hardware.map(hw => `<li>${hw}</li>`).join('')}
+                                </ul>
+                            </div>
+                            <div class="card">
+                                <h3 class="card-title">Software Necessário</h3>
+                                <ul>
+                                    ${content.requirements.software.map(sw => `<li>${sw}</li>`).join('')}
+                                </ul>
+                            </div>
+                            <div class="card">
+                                <h3 class="card-title">Instalação</h3>
+                                <ol>
+                                    ${content.installation.map(step => `<li>${step}</li>`).join('')}
+                                </ol>
+                            </div>
+                        </div>
+                    `;
+                } else if (section === 'api') {
+                    html = `
+                        <div class="card">
+                            <h3 class="card-title">Endpoints da API</h3>
+                            <div class="api-endpoints">
+                                ${content.endpoints.map(endpoint => `
+                                    <div class="endpoint">
+                                        <code>${endpoint.method} ${endpoint.route}</code>
+                                        <p>${endpoint.description}</p>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `;
+                }
+
+                document.getElementById('docsContent').innerHTML = html;
+            }
+
+            function showDocsTab(section) {
+                const tabs = document.querySelectorAll('.tabs .tab-button');
+                tabs.forEach(tab => tab.classList.remove('active'));
+                event.target.classList.add('active');
+                renderDocsTab(section);
+            }
+
+            document.getElementById('docsModal').style.display = 'block';
+            renderDocsTab('overview'); // Mostra primeira tab por padrão
+            window.showDocsTab = showDocsTab;
+        }
+
+        async function showFeatures() {
+            const response = await fetch('/features');
+            const features = await response.json();
+            let html = `
+                <div class="cards-grid">
+                    ${Object.entries(features).map(([key, category]) => `
+                        <div class="card">
+                            <h3 class="card-title">${category.title}</h3>
+                            <ul>
+                                ${category.features.map(feature => `<li>${feature}</li>`).join('')}
+                            </ul>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+            document.getElementById('featuresContent').innerHTML = html;
+            document.getElementById('featuresModal').style.display = 'block';
         }
 
         function closeModal(modalId) {
@@ -926,26 +1217,26 @@
         }
 
         // Event Listeners
-        document.getElementById('userInput').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter' && !isProcessing) {
-                sendMessage();
+        document.addEventListener('DOMContentLoaded', function() {
+            updateStatus();
+            
+            // Fechar modais ao clicar fora
+            window.onclick = function(event) {
+                if (event.target.classList.contains('modal')) {
+                    event.target.style.display = 'none';
+                }
             }
-        });
 
-        // Fechar modal ao clicar fora
-        window.onclick = function(event) {
-            if (event.target.classList.contains('modal')) {
-                event.target.style.display = 'none';
-            }
-        }
+            // Enter para enviar mensagem
+            document.getElementById('userInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter' && !isProcessing) {
+                    sendMessage();
+                }
+            });
+        });
 
         // Atualização automática de status
         setInterval(updateStatus, 2000);
-
-        // Inicialização
-        document.addEventListener('DOMContentLoaded', function() {
-            updateStatus();
-        });
     </script>
 </body>
 </html>
