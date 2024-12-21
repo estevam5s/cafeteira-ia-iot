@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CoffeeAI Control</title>
+    <title>CoffeeAI Control - Sistema Inteligente de Cafeteira</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         :root {
             --primary-neon: #00ff88;
@@ -18,6 +19,9 @@
             --text-dim: rgba(255, 255, 255, 0.7);
             --glass-bg: rgba(255, 255, 255, 0.05);
             --glass-border: rgba(255, 255, 255, 0.1);
+            --success: #4CAF50;
+            --warning: #ff9800;
+            --error: #f44336;
         }
 
         * {
@@ -32,7 +36,6 @@
             color: var(--text-light);
             min-height: 100vh;
             line-height: 1.6;
-            overflow-x: hidden;
         }
 
         .container {
@@ -44,9 +47,11 @@
             grid-template-columns: 300px 1fr;
             grid-template-areas: 
                 "header header"
+                "nav nav"
                 "sidebar main";
         }
 
+        /* Header Styling */
         .header {
             grid-area: header;
             text-align: center;
@@ -57,6 +62,17 @@
             backdrop-filter: blur(10px);
             position: relative;
             overflow: hidden;
+        }
+
+        .header h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 3rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(45deg, var(--primary-neon), var(--accent-blue));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-transform: uppercase;
+            letter-spacing: 2px;
         }
 
         .header::before {
@@ -76,17 +92,45 @@
             100% { transform: translateX(-50%) translateY(-50%) rotate(360deg); }
         }
 
-        .header h1 {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 3rem;
-            margin-bottom: 0.5rem;
-            background: linear-gradient(45deg, var(--primary-neon), var(--accent-blue));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            text-transform: uppercase;
-            letter-spacing: 2px;
+        /* Navigation Bar */
+        .nav-container {
+            grid-area: nav;
+            background: var(--glass-bg);
+            padding: 1rem;
+            border-radius: 15px;
+            border: 1px solid var(--glass-border);
+            backdrop-filter: blur(10px);
         }
 
+        .nav-menu {
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+            list-style: none;
+            flex-wrap: wrap;
+        }
+
+        .nav-item a {
+            color: var(--text-light);
+            text-decoration: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--glass-border);
+        }
+
+        .nav-item a:hover {
+            background: var(--primary-neon);
+            color: var(--bg-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 255, 136, 0.3);
+        }
+
+        /* Sidebar Styling */
         .sidebar {
             grid-area: sidebar;
             display: flex;
@@ -95,16 +139,22 @@
         }
 
         .control-panel {
-            padding: 1.5rem;
             background: var(--glass-bg);
+            padding: 1.5rem;
             border-radius: 15px;
             border: 1px solid var(--glass-border);
             backdrop-filter: blur(10px);
         }
 
+        .control-panel h2 {
+            font-family: 'Orbitron', sans-serif;
+            margin-bottom: 1rem;
+            color: var(--primary-neon);
+        }
+
         .control-button {
             width: 100%;
-            padding: 1rem;
+            padding: 1.2rem;
             margin-bottom: 1rem;
             border: none;
             border-radius: 10px;
@@ -114,9 +164,10 @@
             text-transform: uppercase;
             cursor: pointer;
             transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.8rem;
         }
 
         .power-on {
@@ -131,7 +182,8 @@
 
         .control-button:hover {
             transform: translateY(-2px);
-            box-shadow: 0 0 20px rgba(0, 255, 136, 0.4);
+            filter: brightness(1.1);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
         }
 
         .status-panel {
@@ -155,6 +207,7 @@
 
         .status-item:hover {
             transform: translateY(-2px);
+            background: rgba(0, 0, 0, 0.4);
         }
 
         .status-indicator {
@@ -182,25 +235,26 @@
             box-shadow: 0 0 10px var(--primary-neon);
         }
 
-        .status-online::after {
-            border: 2px solid var(--primary-neon);
-        }
-
         .status-offline {
             background: var(--accent-pink);
             box-shadow: 0 0 10px var(--accent-pink);
         }
 
-        .status-offline::after {
-            border: 2px solid var(--accent-pink);
+        .temperature-gauge {
+            margin-top: 0.5rem;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+            overflow: hidden;
         }
 
-        @keyframes pulseGlow {
-            0% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.5); opacity: 0; }
-            100% { transform: scale(1); opacity: 1; }
+        .temperature-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary-neon), var(--accent-pink));
+            transition: width 0.5s ease;
         }
 
+        /* Main Content */
         .main-content {
             grid-area: main;
             display: flex;
@@ -209,7 +263,6 @@
         }
 
         .chat-container {
-            flex-grow: 1;
             background: var(--glass-bg);
             border-radius: 20px;
             border: 1px solid var(--glass-border);
@@ -217,7 +270,8 @@
             display: flex;
             flex-direction: column;
             padding: 1.5rem;
-            min-height: 70vh;
+            height: 100%;
+            min-height: 60vh;
         }
 
         .messages {
@@ -227,17 +281,32 @@
             display: flex;
             flex-direction: column;
             gap: 1rem;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            margin-bottom: 1rem;
             scrollbar-width: thin;
             scrollbar-color: var(--primary-neon) transparent;
+        }
+
+        .messages::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .messages::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .messages::-webkit-scrollbar-thumb {
+            background-color: var(--primary-neon);
+            border-radius: 3px;
         }
 
         .message {
             padding: 1rem;
             border-radius: 10px;
             max-width: 80%;
-            animation: messageSlide 0.3s ease;
-            position: relative;
-            overflow: hidden;
+            animation: slideIn 0.3s ease;
+            word-wrap: break-word;
         }
 
         .user-message {
@@ -261,7 +330,6 @@
             background: rgba(0, 0, 0, 0.3);
             border-radius: 15px;
             border: 1px solid var(--glass-border);
-            margin-top: 1rem;
         }
 
         .chat-input {
@@ -290,43 +358,123 @@
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
-            text-transform: uppercase;
-            letter-spacing: 1px;
+            min-width: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
             font-family: 'Orbitron', sans-serif;
         }
 
         .send-button:hover:not(:disabled) {
-            background: var(--primary-glow);
             transform: translateY(-2px);
+            filter: brightness(1.1);
             box-shadow: 0 5px 15px rgba(0, 255, 136, 0.3);
         }
 
         .send-button:disabled {
             background: #666;
             cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
         }
 
-        .temperature-gauge {
-            margin-top: 0.5rem;
-            height: 4px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 2px;
-            overflow: hidden;
-        }
-
-        .temperature-fill {
+        /* Modals */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
             height: 100%;
-            background: linear-gradient(90deg, var(--primary-neon), var(--accent-pink));
-            transition: width 0.5s ease;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+            z-index: 1000;
         }
 
+        .modal-content {
+            position: relative;
+            background: var(--bg-dark);
+            border: 1px solid var(--glass-border);
+            border-radius: 15px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 90vh;
+            overflow-y: auto;
+            margin: 50px auto;
+            padding: 2rem;
+            animation: modalSlide 0.3s ease;
+        }
+
+        @keyframes modalSlide {
+            from {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .close-modal {
+            position: absolute;
+            right: 1.5rem;
+            top: 1.5rem;
+            color: var(--text-light);
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .close-modal:hover {
+            color: var(--primary-neon);
+            transform: rotate(90deg);
+        }
+
+        /* Content Grids */
+        .content-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .content-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
+            border-radius: 10px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .content-card:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Responsive Design */
         @media (max-width: 1024px) {
             .container {
                 grid-template-columns: 1fr;
                 grid-template-areas: 
                     "header"
+                    "nav"
                     "sidebar"
                     "main";
+            }
+
+            .sidebar {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+                gap: 1rem;
+            }
+            
+            .nav-menu {
+                flex-direction: row;
+                flex-wrap: wrap;
+                justify-content: center;
             }
         }
 
@@ -334,9 +482,32 @@
             .container {
                 padding: 1rem;
             }
+            
             .message {
                 max-width: 90%;
             }
+            
+            .modal-content {
+                width: 95%;
+                margin: 20px auto;
+            }
+        }
+
+        @keyframes slideIn {
+            from { 
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to { 
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes pulseGlow {
+            0% { transform: scale(1); opacity: 0.8; }
+            50% { transform: scale(1.5); opacity: 0; }
+            100% { transform: scale(1); opacity: 0.8; }
         }
     </style>
 </head>
@@ -347,14 +518,44 @@
             <p>Sistema Inteligente de Controle de Cafeteira</p>
         </header>
 
+        <nav class="nav-container">
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="#" onclick="showGuide()">
+                        <i class="fas fa-book"></i> Guia de Uso
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" onclick="showCoffeeTypes()">
+                        <i class="fas fa-coffee"></i> Tipos de Café
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" onclick="showEquipment()">
+                        <i class="fas fa-microchip"></i> Equipamentos
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" onclick="showMaintenance()">
+                        <i class="fas fa-tools"></i> Manutenção
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" onclick="showContact()">
+                        <i class="fas fa-envelope"></i> Contato
+                    </a>
+                </li>
+            </ul>
+        </nav>
+
         <aside class="sidebar">
             <div class="control-panel">
                 <h2>Controles</h2>
                 <button onclick="controlCoffee('ligar')" class="control-button power-on">
-                    Ligar Cafeteira
+                    <i class="fas fa-power-off"></i> Ligar Cafeteira
                 </button>
                 <button onclick="controlCoffee('desligar')" class="control-button power-off">
-                    Desligar Cafeteira
+                    <i class="fas fa-power-off"></i> Desligar Cafeteira
                 </button>
             </div>
 
@@ -382,20 +583,66 @@
                 <div class="messages" id="messages">
                     <div class="message bot-message">
                         Olá! Sou o assistente da sua cafeteira inteligente. Como posso ajudar?
+                        Use comandos como "Ligar cafeteira" ou pergunte sobre tipos de café!
                     </div>
                 </div>
                 <div class="input-container">
-                    <input type="text" id="userInput" class="chat-input" placeholder="Digite sua mensagem..." />
-                    <button onclick="sendMessage()" id="sendButton" class="send-button">Enviar</button>
+                    <input type="text" id="userInput" class="chat-input" 
+                           placeholder="Digite sua mensagem ou use /ajuda para ver comandos" />
+                    <button onclick="sendMessage()" id="sendButton" class="send-button">
+                        <i class="fas fa-paper-plane"></i> Enviar
+                    </button>
                 </div>
             </div>
         </main>
+    </div>
+
+    <!-- Modais -->
+    <div id="guideModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal('guideModal')">&times;</span>
+            <h2>Guia de Uso</h2>
+            <div id="guideContent" class="content-grid"></div>
+        </div>
+    </div>
+
+    <div id="coffeeTypesModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal('coffeeTypesModal')">&times;</span>
+            <h2>Tipos de Café</h2>
+            <div id="coffeeTypesContent" class="content-grid"></div>
+        </div>
+    </div>
+
+    <div id="equipmentModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal('equipmentModal')">&times;</span>
+            <h2>Equipamentos</h2>
+            <div id="equipmentContent" class="content-grid"></div>
+        </div>
+    </div>
+
+    <div id="maintenanceModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal('maintenanceModal')">&times;</span>
+            <h2>Manutenção</h2>
+            <div id="maintenanceContent" class="content-grid"></div>
+        </div>
+    </div>
+
+    <div id="contactModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal('contactModal')">&times;</span>
+            <h2>Contato</h2>
+            <div id="contactContent"></div>
+        </div>
     </div>
 
     <script>
         let conversationId = null;
         let isProcessing = false;
 
+        // Atualização de Status
         function updateStatus() {
             fetch('/status')
                 .then(response => response.json())
@@ -422,16 +669,15 @@
                 .catch(error => console.error('Erro ao atualizar status:', error));
         }
 
-        setInterval(updateStatus, 2000);
-
+        // Controle da Cafeteira
         async function controlCoffee(action) {
             console.log("Ação solicitada:", action);
             const message = `${action} cafeteira`;
-            console.log("Mensagem a ser enviada:", message);
             document.getElementById('userInput').value = message;
             await sendMessage();
         }
 
+        // Funções do Chat
         async function sendMessage() {
             if (isProcessing) return;
 
@@ -441,11 +687,9 @@
             
             if (!message) return;
 
-            console.log("Enviando mensagem:", message);
-
             isProcessing = true;
             sendButton.disabled = true;
-            sendButton.textContent = 'Enviando...';
+            sendButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
 
             appendMessage(message, 'user-message');
             input.value = '';
@@ -463,7 +707,6 @@
                 });
 
                 const data = await response.json();
-                console.log("Resposta recebida:", data);
                 
                 if (data && data.answer) {
                     appendMessage(data.answer, 'bot-message');
@@ -478,7 +721,7 @@
             } finally {
                 isProcessing = false;
                 sendButton.disabled = false;
-                sendButton.textContent = 'Enviar';
+                sendButton.innerHTML = '<i class="fas fa-paper-plane"></i> Enviar';
                 input.focus();
             }
         }
@@ -492,6 +735,196 @@
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
         }
 
+        // Funções dos Modais
+        async function showGuide() {
+            const response = await fetch('/guide');
+            const guide = await response.json();
+            let html = `
+                <div class="content-card">
+                    <h3>Comandos Básicos</h3>
+                    <ul>
+                        ${guide.commands.basic.map(cmd => `<li>${cmd}</li>`).join('')}
+                    </ul>
+                </div>
+                <div class="content-card">
+                    <h3>Comandos Avançados</h3>
+                    <ul>
+                        ${guide.commands.advanced.map(cmd => `<li>${cmd}</li>`).join('')}
+                    </ul>
+                </div>
+                <div class="content-card">
+                    <h3>Dicas</h3>
+                    <ul>
+                        ${guide.tips.map(tip => `<li>${tip}</li>`).join('')}
+                    </ul>
+                </div>
+            `;
+            document.getElementById('guideContent').innerHTML = html;
+            document.getElementById('guideModal').style.display = 'block';
+        }
+
+        async function showCoffeeTypes() {
+            const response = await fetch('/coffee-types');
+            const coffeeTypes = await response.json();
+            let html = '';
+            for (const type in coffeeTypes) {
+                const coffee = coffeeTypes[type];
+                html += `
+                    <div class="content-card">
+                        <h3>${coffee.name}</h3>
+                        <p>${coffee.description}</p>
+                        <p>Temperatura: ${coffee.temperature}</p>
+                        <p>Tempo: ${coffee.time}</p>
+                        <h4>Passos:</h4>
+                        <ul>
+                            ${coffee.steps.map(step => `<li>${step}</li>`).join('')}
+                        </ul>
+                        <h4>Dicas:</h4>
+                        <ul>
+                            ${coffee.tips.map(tip => `<li>${tip}</li>`).join('')}
+                        </ul>
+                    </div>
+                `;
+            }
+            document.getElementById('coffeeTypesContent').innerHTML = html;
+            document.getElementById('coffeeTypesModal').style.display = 'block';
+        }
+
+        async function showEquipment() {
+            const response = await fetch('/equipment');
+            const equipment = await response.json();
+            let html = `
+                <div class="content-card">
+                    <h3>Controladores</h3>
+                    ${Object.entries(equipment.controllers).map(([key, controller]) => `
+                        <div>
+                            <h4>${controller.name}</h4>
+                            <p>Função: ${controller.function}</p>
+                            <ul>
+                                ${controller.specs.map(spec => `<li>${spec}</li>`).join('')}
+                            </ul>
+                        </div>
+                    `).join('')}
+                </div>
+                <div class="content-card">
+                    <h3>Sensores</h3>
+                    ${Object.entries(equipment.sensors).map(([key, sensor]) => `
+                        <div>
+                            <h4>${sensor.model}</h4>
+                            <p>Tipo: ${sensor.type}</p>
+                            <p>Faixa: ${sensor.range}</p>
+                            <p>Status: ${sensor.status}</p>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+            document.getElementById('equipmentContent').innerHTML = html;
+            document.getElementById('equipmentModal').style.display = 'block';
+        }
+
+        async function showMaintenance() {
+            const response = await fetch('/maintenance-guide');
+            const guide = await response.json();
+            let html = `
+                <div class="content-card">
+                    <h3>Manutenção Diária</h3>
+                    <ul>
+                        ${guide.daily.map(task => `
+                            <li>
+                                <strong>${task.task}</strong>
+                                <p>${task.description}</p>
+                                <small>Importância: ${task.importance}</small>
+                            </li>
+                        `).join('')}
+                    </ul>
+                </div>
+                <div class="content-card">
+                    <h3>Manutenção Semanal</h3>
+                    <ul>
+                        ${guide.weekly.map(task => `
+                            <li>
+                                <strong>${task.task}</strong>
+                                <p>${task.description}</p>
+                                <small>Importância: ${task.importance}</small>
+                            </li>
+                        `).join('')}
+                    </ul>
+                </div>
+                <div class="content-card">
+                    <h3>Manutenção Mensal</h3>
+                    <ul>
+                        ${guide.monthly.map(task => `
+                            <li>
+                                <strong>${task.task}</strong>
+                                <p>${task.description}</p>
+                                <small>Importância: ${task.importance}</small>
+                            </li>
+                        `).join('')}
+                    </ul>
+                </div>
+            `;
+            document.getElementById('maintenanceContent').innerHTML = html;
+            document.getElementById('maintenanceModal').style.display = 'block';
+        }
+
+        function showContact() {
+            let html = `
+                <form class="content-card" onsubmit="submitContact(event)">
+                    <div class="form-group">
+                        <label>Nome:</label>
+                        <input type="text" required class="chat-input">
+                    </div>
+                    <div class="form-group">
+                        <label>Email:</label>
+                        <input type="email" required class="chat-input">
+                    </div>
+                    <div class="form-group">
+                        <label>Assunto:</label>
+                        <input type="text" required class="chat-input">
+                    </div>
+                    <div class="form-group">
+                        <label>Mensagem:</label>
+                        <textarea required class="chat-input" rows="4"></textarea>
+                    </div>
+                    <button type="submit" class="send-button">
+                        <i class="fas fa-paper-plane"></i> Enviar Mensagem
+                    </button>
+                </form>
+            `;
+            document.getElementById('contactContent').innerHTML = html;
+            document.getElementById('contactModal').style.display = 'block';
+        }
+
+        async function submitContact(event) {
+            event.preventDefault();
+            const form = event.target;
+            const formData = new FormData(form);
+            
+            try {
+                const response = await fetch('/send-contact', {
+                    method: 'POST',
+                    body: JSON.stringify(Object.fromEntries(formData)),
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    alert('Mensagem enviada com sucesso!');
+                    closeModal('contactModal');
+                } else {
+                    throw new Error('Erro ao enviar mensagem');
+                }
+            } catch (error) {
+                alert('Erro ao enviar mensagem. Tente novamente mais tarde.');
+                console.error('Erro:', error);
+            }
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
         // Event Listeners
         document.getElementById('userInput').addEventListener('keypress', function(e) {
             if (e.key === 'Enter' && !isProcessing) {
@@ -499,8 +932,20 @@
             }
         });
 
-        // Inicializar
-        updateStatus();
+        // Fechar modal ao clicar fora
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.style.display = 'none';
+            }
+        }
+
+        // Atualização automática de status
+        setInterval(updateStatus, 2000);
+
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', function() {
+            updateStatus();
+        });
     </script>
 </body>
 </html>
