@@ -450,6 +450,70 @@ def get_system_info():
         }
     })
 
+@app.route('/guide')
+def get_guide():
+    return jsonify({
+        "basic": {
+            "commands": [
+                "Ligar cafeteira",
+                "Desligar cafeteira",
+                "Verificar temperatura",
+                "Status do sistema",
+                "Preparo específico (ex: 'fazer espresso')",
+                "Manutenção"
+            ],
+            "interface": [
+                "Chat interativo para comandos",
+                "Botões de controle rápido",
+                "Painel de status em tempo real",
+                "Indicadores de temperatura",
+                "Monitoramento de água"
+            ]
+        },
+        "advanced": {
+            "features": [
+                "Controle de temperatura preciso",
+                "Monitoramento em tempo real",
+                "Alertas de manutenção",
+                "Diferentes tipos de café",
+                "Integração IoT"
+            ],
+            "tips": [
+                "Mantenha o sistema sempre atualizado",
+                "Faça limpeza regular",
+                "Calibre os sensores mensalmente",
+                "Verifique a qualidade da água",
+                "Monitore a temperatura ideal"
+            ]
+        },
+        "settings": {
+            "temperature": {
+                "espresso": "92-96°C",
+                "cappuccino": "85-90°C",
+                "water": "85°C"
+            },
+            "maintenance": {
+                "daily": "Limpeza básica",
+                "weekly": "Limpeza profunda",
+                "monthly": "Descalcificação"
+            }
+        },
+        "shortcuts": {
+            "keyboard": [
+                "Enter - Enviar comando",
+                "Esc - Fechar modais",
+                "/help - Lista de comandos",
+                "/status - Estado atual"
+            ],
+            "voice": [
+                "Ligar cafeteira",
+                "Desligar cafeteira",
+                "Status",
+                "Temperatura"
+            ]
+        }
+    })
+
 # Rotas de Receitas
 @app.route('/recipes')
 def get_all_recipes():
