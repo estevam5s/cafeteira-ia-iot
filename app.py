@@ -16,7 +16,7 @@ DIFY_API_URL = 'https://api.dify.ai/v1'
 
 # Configurações MQTT
 MQTT_BROKER = "localhost"
-MQTT_PORT = 1883
+MQTT_PORT = int(os.getenv('MQTT_PORT', 1883))
 MQTT_TOPIC_COMMAND = "cafeteira/comando"
 MQTT_TOPIC_STATUS = "cafeteira/status"
 
@@ -450,6 +450,10 @@ def get_system_info():
         }
     })
 
+@app.route('/health')
+def health_check():
+    return jsonify({"status": "ok"})
+
 @app.route('/guide')
 def get_guide():
     return jsonify({
@@ -546,6 +550,10 @@ def get_specific_method(method):
 @app.route('/equipment')
 def get_equipment():
     return jsonify(EQUIPMENT_INFO)
+
+@app.route('/maintenance-guide')
+def get_maintenance_guide():
+    return jsonify(MAINTENANCE_GUIDE)
 
 @app.route('/equipment/controllers')
 def get_controllers():

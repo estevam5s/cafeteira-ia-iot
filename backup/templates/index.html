@@ -1,506 +1,1502 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CoffeeAI Control</title>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CoffeeAI Control - Sistema Inteligente de Cafeteira</title>
+    <!-- Fontes -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700&family=Rajdhani:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <!-- Ícones -->
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <!-- Charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        :root {
-            --primary-neon: #00ff88;
-            --primary-glow: #00cc6a;
-            --accent-pink: #ff3366;
-            --accent-blue: #0088ff;
-            --bg-dark: #0a0a1f;
-            --bg-darker: #05051a;
-            --bg-gradient: linear-gradient(135deg, var(--bg-dark), var(--bg-darker));
-            --text-light: #ffffff;
-            --text-dim: rgba(255, 255, 255, 0.7);
-            --glass-bg: rgba(255, 255, 255, 0.05);
-            --glass-border: rgba(255, 255, 255, 0.1);
-        }
+      /* Variáveis CSS */
+      :root {
+        --primary-neon: #00ff88;
+        --primary-glow: #00cc6a;
+        --accent-pink: #ff3366;
+        --accent-blue: #0088ff;
+        --bg-dark: #0a0a1f;
+        --bg-darker: #05051a;
+        --bg-gradient: linear-gradient(
+          135deg,
+          var(--bg-dark),
+          var(--bg-darker)
+        );
+        --text-light: #ffffff;
+        --text-dim: rgba(255, 255, 255, 0.7);
+        --glass-bg: rgba(255, 255, 255, 0.05);
+        --glass-border: rgba(255, 255, 255, 0.1);
+        --success: #4caf50;
+        --warning: #ff9800;
+        --error: #f44336;
+        --card-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+      }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Rajdhani', sans-serif;
-        }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: "Rajdhani", sans-serif;
+      }
 
-        body {
-            background: var(--bg-gradient);
-            color: var(--text-light);
-            min-height: 100vh;
-            line-height: 1.6;
-            overflow-x: hidden;
-        }
+      body {
+        background: var(--bg-gradient);
+        color: var(--text-light);
+        min-height: 100vh;
+        line-height: 1.6;
+      }
 
+      /* Layout Grid */
+      .container {
+        display: grid;
+        grid-template-areas:
+          "header header"
+          "nav nav"
+          "sidebar main";
+        grid-template-columns: 300px 1fr;
+        gap: 1.5rem;
+        padding: 1.5rem;
+        max-width: 1600px;
+        margin: 0 auto;
+        min-height: 100vh;
+      }
+
+      /* Header */
+      .header {
+        grid-area: header;
+        text-align: center;
+        padding: 2rem;
+        background: var(--glass-bg);
+        border-radius: 20px;
+        border: 1px solid var(--glass-border);
+        backdrop-filter: blur(10px);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .header::before {
+        content: "";
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: linear-gradient(
+          45deg,
+          transparent,
+          var(--primary-neon),
+          transparent
+        );
+        animation: headerGlow 8s linear infinite;
+        opacity: 0.1;
+      }
+
+      .header h1 {
+        font-family: "Orbitron", sans-serif;
+        font-size: 3rem;
+        background: linear-gradient(
+          45deg,
+          var(--primary-neon),
+          var(--accent-blue)
+        );
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        margin-bottom: 0.5rem;
+      }
+
+      /* Navegação Principal */
+      .nav-container {
+        grid-area: nav;
+        background: var(--glass-bg);
+        border-radius: 15px;
+        padding: 1rem;
+        backdrop-filter: blur(10px);
+        border: 1px solid var(--glass-border);
+      }
+
+      .nav-menu {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+        flex-wrap: wrap;
+        list-style: none;
+      }
+
+      .nav-item a {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--text-light);
+        text-decoration: none;
+        padding: 0.8rem 1.2rem;
+        border-radius: 8px;
+        background: rgba(0, 0, 0, 0.2);
+        border: 1px solid var(--glass-border);
+        transition: all 0.3s ease;
+      }
+
+      .nav-item a:hover {
+        background: var(--primary-neon);
+        color: var(--bg-dark);
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 255, 136, 0.3);
+      }
+
+      /* Sidebar */
+      .sidebar {
+        grid-area: sidebar;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+      }
+
+      .control-panel {
+        background: var(--glass-bg);
+        padding: 1.5rem;
+        border-radius: 15px;
+        border: 1px solid var(--glass-border);
+        backdrop-filter: blur(10px);
+      }
+
+      .control-panel h2 {
+        font-family: "Orbitron", sans-serif;
+        color: var(--primary-neon);
+        margin-bottom: 1rem;
+      }
+
+      .control-button {
+        width: 100%;
+        padding: 1.2rem;
+        margin-bottom: 1rem;
+        border: none;
+        border-radius: 10px;
+        font-family: "Orbitron", sans-serif;
+        font-size: 1rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.8rem;
+      }
+
+      .power-on {
+        background: var(--primary-neon);
+        color: var(--bg-dark);
+      }
+
+      .power-off {
+        background: var(--accent-pink);
+        color: var(--text-light);
+      }
+
+      .control-button:hover {
+        transform: translateY(-2px);
+        filter: brightness(1.1);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+      }
+
+      /* Status Panel */
+      .status-panel {
+        background: var(--glass-bg);
+        padding: 1.5rem;
+        border-radius: 15px;
+        border: 1px solid var(--glass-border);
+        backdrop-filter: blur(10px);
+      }
+
+      .status-item {
+        padding: 1rem;
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: 10px;
+        border: 1px solid var(--glass-border);
+        margin-bottom: 1rem;
+        transition: transform 0.3s ease;
+      }
+
+      .status-item:hover {
+        transform: translateY(-2px);
+      }
+
+      .status-indicator {
+        display: inline-block;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        margin-right: 10px;
+        position: relative;
+      }
+
+      .status-indicator::after {
+        content: "";
+        position: absolute;
+        top: -2px;
+        left: -2px;
+        right: -2px;
+        bottom: -2px;
+        border-radius: 50%;
+        animation: pulseGlow 2s infinite;
+      }
+
+      .status-online {
+        background: var(--primary-neon);
+        box-shadow: 0 0 10px var(--primary-neon);
+      }
+
+      .status-offline {
+        background: var(--accent-pink);
+        box-shadow: 0 0 10px var(--accent-pink);
+      }
+
+      .temperature-gauge {
+        margin-top: 0.5rem;
+        height: 4px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 2px;
+        overflow: hidden;
+      }
+
+      .temperature-fill {
+        height: 100%;
+        background: linear-gradient(
+          90deg,
+          var(--primary-neon),
+          var(--accent-pink)
+        );
+        transition: width 0.5s ease;
+      }
+
+      /* Main Content */
+      .main-content {
+        grid-area: main;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+      }
+
+      .chat-container {
+        background: var(--glass-bg);
+        border-radius: 20px;
+        border: 1px solid var(--glass-border);
+        backdrop-filter: blur(10px);
+        display: flex;
+        flex-direction: column;
+        padding: 1.5rem;
+        height: 100%;
+        min-height: 60vh;
+      }
+
+      .messages {
+        flex-grow: 1;
+        overflow-y: auto;
+        padding: 1rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        background: rgba(0, 0, 0, 0.2);
+        border-radius: 10px;
+        margin-bottom: 1rem;
+        scrollbar-width: thin;
+        scrollbar-color: var(--primary-neon) transparent;
+      }
+
+      .messages::-webkit-scrollbar {
+        width: 6px;
+      }
+
+      .messages::-webkit-scrollbar-track {
+        background: transparent;
+      }
+
+      .messages::-webkit-scrollbar-thumb {
+        background-color: var(--primary-neon);
+        border-radius: 3px;
+      }
+
+      .message {
+        padding: 1rem;
+        border-radius: 10px;
+        max-width: 80%;
+        animation: slideIn 0.3s ease;
+        word-wrap: break-word;
+      }
+
+      .user-message {
+        background: rgba(0, 255, 136, 0.1);
+        border: 1px solid rgba(0, 255, 136, 0.2);
+        align-self: flex-end;
+        margin-left: 20%;
+      }
+
+      .bot-message {
+        background: rgba(0, 136, 255, 0.1);
+        border: 1px solid rgba(0, 136, 255, 0.2);
+        align-self: flex-start;
+        margin-right: 20%;
+      }
+
+      /* Input Area */
+      .input-container {
+        display: flex;
+        gap: 1rem;
+        padding: 1rem;
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: 15px;
+        border: 1px solid var(--glass-border);
+      }
+
+      .chat-input {
+        flex-grow: 1;
+        padding: 1rem;
+        border: none;
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.1);
+        color: var(--text-light);
+        font-size: 1rem;
+      }
+
+      .chat-input:focus {
+        outline: none;
+        background: rgba(255, 255, 255, 0.15);
+        box-shadow: 0 0 0 2px var(--primary-neon);
+      }
+
+      .send-button {
+        padding: 1rem 2rem;
+        border: none;
+        border-radius: 10px;
+        background: var(--primary-neon);
+        color: var(--bg-dark);
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        min-width: 100px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+      }
+
+      .send-button:hover:not(:disabled) {
+        transform: translateY(-2px);
+        filter: brightness(1.1);
+        box-shadow: 0 5px 15px rgba(0, 255, 136, 0.3);
+      }
+
+      .send-button:disabled {
+        background: #666;
+        cursor: not-allowed;
+      }
+
+      /* Modais */
+      .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        backdrop-filter: blur(5px);
+        z-index: 1000;
+      }
+
+      .modal-content {
+        position: relative;
+        background: var(--bg-dark);
+        border: 1px solid var(--glass-border);
+        border-radius: 15px;
+        width: 90%;
+        max-width: 800px;
+        max-height: 90vh;
+        overflow-y: auto;
+        margin: 50px auto;
+        padding: 2rem;
+        animation: modalSlide 0.3s ease;
+      }
+
+      .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid var(--glass-border);
+      }
+
+      .modal-title {
+        font-family: "Orbitron", sans-serif;
+        color: var(--primary-neon);
+        font-size: 1.5rem;
+      }
+
+      .close-modal {
+        color: var(--text-light);
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      .close-modal:hover {
+        color: var(--primary-neon);
+        transform: rotate(90deg);
+      }
+
+      /* Cards Grid */
+      .cards-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin-top: 1.5rem;
+      }
+
+      .card {
+        background: var(--glass-bg);
+        border: 1px solid var(--glass-border);
+        border-radius: 10px;
+        padding: 1.5rem;
+        transition: all 0.3s ease;
+      }
+
+      .card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--card-shadow);
+      }
+
+      .card-title {
+        font-family: "Orbitron", sans-serif;
+        color: var(--primary-neon);
+        margin-bottom: 1rem;
+      }
+
+      /* Animations */
+      @keyframes headerGlow {
+        0% {
+          transform: translateX(-50%) translateY(-50%) rotate(0deg);
+        }
+        100% {
+          transform: translateX(-50%) translateY(-50%) rotate(360deg);
+        }
+      }
+
+      @keyframes pulseGlow {
+        0% {
+          transform: scale(1);
+          opacity: 0.8;
+        }
+        50% {
+          transform: scale(1.5);
+          opacity: 0;
+        }
+        100% {
+          transform: scale(1);
+          opacity: 0.8;
+        }
+      }
+
+      @keyframes slideIn {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @keyframes modalSlide {
+        from {
+          opacity: 0;
+          transform: translateY(-50px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      /* Tabs dentro dos modais */
+      .tabs {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 1px solid var(--glass-border);
+        padding-bottom: 1rem;
+      }
+
+      .tab-button {
+        padding: 0.5rem 1rem;
+        border: none;
+        background: var(--glass-bg);
+        color: var(--text-light);
+        border-radius: 5px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      .tab-button.active {
+        background: var(--primary-neon);
+        color: var(--bg-dark);
+      }
+
+      /* Conteúdo das tabs */
+      .tab-content {
+        display: none;
+      }
+
+      .tab-content.active {
+        display: block;
+      }
+
+      /* Badges e Indicators */
+      .badge {
+        padding: 0.2rem 0.5rem;
+        border-radius: 5px;
+        font-size: 0.8rem;
+        margin-left: 0.5rem;
+      }
+
+      .badge-success {
+        background: var(--success);
+        color: var(--text-light);
+      }
+
+      .badge-warning {
+        background: var(--warning);
+        color: var(--bg-dark);
+      }
+
+      .badge-error {
+        background: var(--error);
+        color: var(--text-light);
+      }
+
+      /* Responsividade */
+      @media (max-width: 1024px) {
         .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 2rem;
-            display: grid;
-            gap: 2rem;
-            grid-template-columns: 300px 1fr;
-            grid-template-areas: 
-                "header header"
-                "sidebar main";
+          grid-template-columns: 1fr;
+          grid-template-areas:
+            "header"
+            "nav"
+            "sidebar"
+            "main";
         }
 
-        .header {
-            grid-area: header;
-            text-align: center;
-            padding: 2rem;
-            background: var(--glass-bg);
-            border-radius: 20px;
-            border: 1px solid var(--glass-border);
-            backdrop-filter: blur(10px);
-            position: relative;
-            overflow: hidden;
+        .nav-menu {
+          flex-direction: column;
         }
 
-        .header::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: linear-gradient(45deg, transparent, var(--primary-neon), transparent);
-            animation: headerGlow 8s linear infinite;
-            opacity: 0.1;
+        .cards-grid {
+          grid-template-columns: 1fr;
         }
+      }
 
-        @keyframes headerGlow {
-            0% { transform: translateX(-50%) translateY(-50%) rotate(0deg); }
-            100% { transform: translateX(-50%) translateY(-50%) rotate(360deg); }
-        }
-
-        .header h1 {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 3rem;
-            margin-bottom: 0.5rem;
-            background: linear-gradient(45deg, var(--primary-neon), var(--accent-blue));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-        }
-
-        .sidebar {
-            grid-area: sidebar;
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
-
-        .control-panel {
-            padding: 1.5rem;
-            background: var(--glass-bg);
-            border-radius: 15px;
-            border: 1px solid var(--glass-border);
-            backdrop-filter: blur(10px);
-        }
-
-        .control-button {
-            width: 100%;
-            padding: 1rem;
-            margin-bottom: 1rem;
-            border: none;
-            border-radius: 10px;
-            font-family: 'Orbitron', sans-serif;
-            font-size: 1rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-            letter-spacing: 1px;
-        }
-
-        .power-on {
-            background: var(--primary-neon);
-            color: var(--bg-dark);
-        }
-
-        .power-off {
-            background: var(--accent-pink);
-            color: var(--text-light);
-        }
-
-        .control-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 0 20px rgba(0, 255, 136, 0.4);
-        }
-
-        .status-panel {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-            padding: 1.5rem;
-            background: var(--glass-bg);
-            border-radius: 15px;
-            border: 1px solid var(--glass-border);
-            backdrop-filter: blur(10px);
-        }
-
-        .status-item {
-            padding: 1rem;
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 10px;
-            border: 1px solid var(--glass-border);
-            transition: transform 0.3s ease;
-        }
-
-        .status-item:hover {
-            transform: translateY(-2px);
-        }
-
-        .status-indicator {
-            display: inline-block;
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            margin-right: 10px;
-            position: relative;
-        }
-
-        .status-indicator::after {
-            content: '';
-            position: absolute;
-            top: -2px;
-            left: -2px;
-            right: -2px;
-            bottom: -2px;
-            border-radius: 50%;
-            animation: pulseGlow 2s infinite;
-        }
-
-        .status-online {
-            background: var(--primary-neon);
-            box-shadow: 0 0 10px var(--primary-neon);
-        }
-
-        .status-online::after {
-            border: 2px solid var(--primary-neon);
-        }
-
-        .status-offline {
-            background: var(--accent-pink);
-            box-shadow: 0 0 10px var(--accent-pink);
-        }
-
-        .status-offline::after {
-            border: 2px solid var(--accent-pink);
-        }
-
-        @keyframes pulseGlow {
-            0% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.5); opacity: 0; }
-            100% { transform: scale(1); opacity: 1; }
-        }
-
-        .main-content {
-            grid-area: main;
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
-
-        .chat-container {
-            flex-grow: 1;
-            background: var(--glass-bg);
-            border-radius: 20px;
-            border: 1px solid var(--glass-border);
-            backdrop-filter: blur(10px);
-            display: flex;
-            flex-direction: column;
-            padding: 1.5rem;
-            min-height: 70vh;
-        }
-
-        .messages {
-            flex-grow: 1;
-            overflow-y: auto;
-            padding: 1rem;
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-            scrollbar-width: thin;
-            scrollbar-color: var(--primary-neon) transparent;
+      @media (max-width: 768px) {
+        .container {
+          padding: 1rem;
         }
 
         .message {
-            padding: 1rem;
-            border-radius: 10px;
-            max-width: 80%;
-            animation: messageSlide 0.3s ease;
-            position: relative;
-            overflow: hidden;
+          max-width: 90%;
         }
 
-        .user-message {
-            background: rgba(0, 255, 136, 0.1);
-            border: 1px solid rgba(0, 255, 136, 0.2);
-            align-self: flex-end;
-            margin-left: 20%;
+        .modal-content {
+          width: 95%;
+          margin: 20px auto;
         }
 
-        .bot-message {
-            background: rgba(0, 136, 255, 0.1);
-            border: 1px solid rgba(0, 136, 255, 0.2);
-            align-self: flex-start;
-            margin-right: 20%;
+        .tabs {
+          flex-wrap: wrap;
         }
-
-        .input-container {
-            display: flex;
-            gap: 1rem;
-            padding: 1rem;
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 15px;
-            border: 1px solid var(--glass-border);
-            margin-top: 1rem;
-        }
-
-        .chat-input {
-            flex-grow: 1;
-            padding: 1rem;
-            border: none;
-            border-radius: 10px;
-            background: rgba(255, 255, 255, 0.1);
-            color: var(--text-light);
-            font-size: 1rem;
-            transition: all 0.3s ease;
-        }
-
-        .chat-input:focus {
-            outline: none;
-            background: rgba(255, 255, 255, 0.15);
-            box-shadow: 0 0 0 2px var(--primary-neon);
-        }
-
-        .send-button {
-            padding: 1rem 2rem;
-            border: none;
-            border-radius: 10px;
-            background: var(--primary-neon);
-            color: var(--bg-dark);
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            font-family: 'Orbitron', sans-serif;
-        }
-
-        .send-button:hover:not(:disabled) {
-            background: var(--primary-glow);
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 255, 136, 0.3);
-        }
-
-        .send-button:disabled {
-            background: #666;
-            cursor: not-allowed;
-        }
-
-        .temperature-gauge {
-            margin-top: 0.5rem;
-            height: 4px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 2px;
-            overflow: hidden;
-        }
-
-        .temperature-fill {
-            height: 100%;
-            background: linear-gradient(90deg, var(--primary-neon), var(--accent-pink));
-            transition: width 0.5s ease;
-        }
-
-        @media (max-width: 1024px) {
-            .container {
-                grid-template-columns: 1fr;
-                grid-template-areas: 
-                    "header"
-                    "sidebar"
-                    "main";
-            }
-        }
-
-        @media (max-width: 768px) {
-            .container {
-                padding: 1rem;
-            }
-            .message {
-                max-width: 90%;
-            }
-        }
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <div class="container">
-        <header class="header">
-            <h1>CoffeeAI Control</h1>
-            <p>Sistema Inteligente de Controle de Cafeteira</p>
-        </header>
+      <header class="header">
+        <h1>CoffeeAI Control</h1>
+        <p>Sistema Inteligente de Controle de Cafeteira</p>
+      </header>
 
-        <aside class="sidebar">
-            <div class="control-panel">
-                <h2>Controles</h2>
-                <button onclick="controlCoffee('ligar')" class="control-button power-on">
-                    Ligar Cafeteira
-                </button>
-                <button onclick="controlCoffee('desligar')" class="control-button power-off">
-                    Desligar Cafeteira
-                </button>
-            </div>
+      <nav class="nav-container">
+        <ul class="nav-menu">
+          <li class="nav-item">
+            <a href="#" onclick="showGuide()">
+              <i class="fas fa-book"></i> Guia de Uso
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#" onclick="showRecipes()">
+              <i class="fas fa-coffee"></i> Receitas
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#" onclick="showBrewingMethods()">
+              <i class="fas fa-mortar-pestle"></i> Modos de Preparo
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#" onclick="showEquipment()">
+              <i class="fas fa-microchip"></i> Equipamentos
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#" onclick="showMaintenance()">
+              <i class="fas fa-tools"></i> Manutenção
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#" onclick="showDocs()">
+              <i class="fas fa-file-code"></i> Documentação
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#" onclick="showFeatures()">
+              <i class="fas fa-star"></i> Funcionalidades
+            </a>
+          </li>
+        </ul>
+      </nav>
 
-            <div class="status-panel">
-                <div class="status-item">
-                    <span class="status-indicator status-online"></span>
-                    <span>Sistema Online</span>
-                </div>
-                <div class="status-item">
-                    <span class="status-indicator status-offline" id="coffee-status"></span>
-                    <span id="coffee-status-text">Cafeteira: Desligada</span>
-                    <div id="coffee-temperature"></div>
-                    <div class="temperature-gauge">
-                        <div class="temperature-fill" id="temperature-bar" style="width: 0%"></div>
-                    </div>
-                </div>
-                <div class="status-item">
-                    <span id="lastActivity">Última Atividade: --:--</span>
-                </div>
-            </div>
-        </aside>
+      <aside class="sidebar">
+        <div class="control-panel">
+          <h2>Controles</h2>
+          <button
+            onclick="controlCoffee('ligar')"
+            class="control-button power-on"
+          >
+            <i class="fas fa-power-off"></i> Ligar Cafeteira
+          </button>
+          <button
+            onclick="controlCoffee('desligar')"
+            class="control-button power-off"
+          >
+            <i class="fas fa-power-off"></i> Desligar Cafeteira
+          </button>
+        </div>
 
-        <main class="main-content">
-            <div class="chat-container">
-                <div class="messages" id="messages">
-                    <div class="message bot-message">
-                        Olá! Sou o assistente da sua cafeteira inteligente. Como posso ajudar?
-                    </div>
-                </div>
-                <div class="input-container">
-                    <input type="text" id="userInput" class="chat-input" placeholder="Digite sua mensagem..." />
-                    <button onclick="sendMessage()" id="sendButton" class="send-button">Enviar</button>
-                </div>
+        <div class="status-panel">
+          <div class="status-item">
+            <span class="status-indicator status-online"></span>
+            <span>Sistema Online</span>
+          </div>
+          <div class="status-item">
+            <span
+              class="status-indicator status-offline"
+              id="coffee-status"
+            ></span>
+            <span id="coffee-status-text">Cafeteira: Desligada</span>
+            <div id="coffee-temperature"></div>
+            <div class="temperature-gauge">
+              <div
+                class="temperature-fill"
+                id="temperature-bar"
+                style="width: 0%"
+              ></div>
             </div>
-        </main>
+          </div>
+          <div class="status-item">
+            <span id="lastActivity">Última Atividade: --:--</span>
+          </div>
+        </div>
+      </aside>
+
+      <main class="main-content">
+        <div class="chat-container">
+          <div class="messages" id="messages">
+            <div class="message bot-message">
+              Olá! Sou o assistente da sua cafeteira inteligente. Como posso
+              ajudar? Use comandos como "Ligar cafeteira" ou pergunte sobre
+              tipos de café!
+            </div>
+          </div>
+          <div class="input-container">
+            <input
+              type="text"
+              id="userInput"
+              class="chat-input"
+              placeholder="Digite sua mensagem ou use /ajuda para ver comandos"
+            />
+            <button onclick="sendMessage()" id="sendButton" class="send-button">
+              <i class="fas fa-paper-plane"></i> Enviar
+            </button>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <!-- Modais -->
+    <!-- Modal do Guia -->
+    <div id="guideModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 class="modal-title">Guia de Uso</h2>
+          <button class="close-modal" onclick="closeModal('guideModal')">
+            &times;
+          </button>
+        </div>
+        <div id="guideContent"></div>
+      </div>
+    </div>
+
+    <!-- Modal de Receitas -->
+    <div id="recipesModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 class="modal-title">Receitas de Café</h2>
+          <button class="close-modal" onclick="closeModal('recipesModal')">
+            &times;
+          </button>
+        </div>
+        <div class="tabs" id="recipesTabs">
+          <button
+            class="tab-button active"
+            onclick="showRecipeTab('tradicional')"
+          >
+            Tradicionais
+          </button>
+          <button class="tab-button" onclick="showRecipeTab('especiais')">
+            Especiais
+          </button>
+          <button class="tab-button" onclick="showRecipeTab('gelados')">
+            Gelados
+          </button>
+        </div>
+        <div id="recipesContent"></div>
+      </div>
+    </div>
+
+    <!-- Modal de Modos de Preparo -->
+    <div id="brewingModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 class="modal-title">Modos de Preparo</h2>
+          <button class="close-modal" onclick="closeModal('brewingModal')">
+            &times;
+          </button>
+        </div>
+        <div id="brewingContent"></div>
+      </div>
+    </div>
+
+    <!-- Modal de Equipamentos -->
+    <div id="equipmentModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 class="modal-title">Equipamentos</h2>
+          <button class="close-modal" onclick="closeModal('equipmentModal')">
+            &times;
+          </button>
+        </div>
+        <div class="tabs">
+          <button
+            class="tab-button active"
+            onclick="showEquipmentTab('controllers')"
+          >
+            Controladores
+          </button>
+          <button class="tab-button" onclick="showEquipmentTab('sensors')">
+            Sensores
+          </button>
+          <button class="tab-button" onclick="showEquipmentTab('actuators')">
+            Atuadores
+          </button>
+        </div>
+        <div id="equipmentContent"></div>
+      </div>
+    </div>
+
+    <!-- Modal de Manutenção -->
+    <div id="maintenanceModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 class="modal-title">Manutenção</h2>
+          <button class="close-modal" onclick="closeModal('maintenanceModal')">
+            &times;
+          </button>
+        </div>
+        <div class="tabs">
+          <button
+            class="tab-button active"
+            onclick="showMaintenanceTab('daily')"
+          >
+            Diária
+          </button>
+          <button class="tab-button" onclick="showMaintenanceTab('weekly')">
+            Semanal
+          </button>
+          <button class="tab-button" onclick="showMaintenanceTab('monthly')">
+            Mensal
+          </button>
+        </div>
+        <div id="maintenanceContent"></div>
+      </div>
+    </div>
+
+    <!-- Modal de Documentação -->
+    <div id="docsModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 class="modal-title">Documentação</h2>
+          <button class="close-modal" onclick="closeModal('docsModal')">
+            &times;
+          </button>
+        </div>
+        <div class="tabs">
+          <button class="tab-button active" onclick="showDocsTab('overview')">
+            Visão Geral
+          </button>
+          <button class="tab-button" onclick="showDocsTab('setup')">
+            Instalação
+          </button>
+          <button class="tab-button" onclick="showDocsTab('api')">API</button>
+        </div>
+        <div id="docsContent"></div>
+      </div>
+    </div>
+
+    <!-- Modal de Funcionalidades -->
+    <div id="featuresModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 class="modal-title">Funcionalidades</h2>
+          <button class="close-modal" onclick="closeModal('featuresModal')">
+            &times;
+          </button>
+        </div>
+        <div id="featuresContent"></div>
+      </div>
     </div>
 
     <script>
-        let conversationId = null;
-        let isProcessing = false;
+      // Variáveis globais
+      let conversationId = null;
+      let isProcessing = false;
 
-        function updateStatus() {
-            fetch('/status')
-                .then(response => response.json())
-                .then(data => {
-                    const statusIndicator = document.getElementById('coffee-status');
-                    const statusText = document.getElementById('coffee-status-text');
-                    const tempElement = document.getElementById('coffee-temperature');
-                    const tempBar = document.getElementById('temperature-bar');
-                    const lastActivity = document.getElementById('lastActivity');
+      // Atualização de Status
+      function updateStatus() {
+        fetch("/status")
+          .then((response) => response.json())
+          .then((data) => {
+            const statusIndicator = document.getElementById("coffee-status");
+            const statusText = document.getElementById("coffee-status-text");
+            const tempElement = document.getElementById("coffee-temperature");
+            const tempBar = document.getElementById("temperature-bar");
+            const lastActivity = document.getElementById("lastActivity");
 
-                    statusIndicator.className = `status-indicator status-${data.status === 'ligada' ? 'online' : 'offline'}`;
-                    statusText.textContent = `Cafeteira: ${data.status.charAt(0).toUpperCase() + data.status.slice(1)}`;
-                    
-                    if (data.temperature) {
-                        const temp = parseFloat(data.temperature);
-                        tempElement.textContent = `Temperatura: ${temp.toFixed(1)}°C`;
-                        tempBar.style.width = `${Math.min(temp, 100)}%`;
-                    }
-                    
-                    if (data.last_activity) {
-                        lastActivity.textContent = `Última Atividade: ${data.last_activity}`;
-                    }
-                })
-                .catch(error => console.error('Erro ao atualizar status:', error));
+            statusIndicator.className = `status-indicator status-${
+              data.status === "ligada" ? "online" : "offline"
+            }`;
+            statusText.textContent = `Cafeteira: ${
+              data.status.charAt(0).toUpperCase() + data.status.slice(1)
+            }`;
+
+            if (data.temperature) {
+              const temp = parseFloat(data.temperature);
+              tempElement.textContent = `Temperatura: ${temp.toFixed(1)}°C`;
+              tempBar.style.width = `${Math.min(temp, 100)}%`;
+            }
+
+            if (data.last_activity) {
+              lastActivity.textContent = `Última Atividade: ${data.last_activity}`;
+            }
+          })
+          .catch((error) => console.error("Erro ao atualizar status:", error));
+      }
+
+      // Controle da Cafeteira
+      async function controlCoffee(action) {
+        console.log("Ação solicitada:", action);
+        const message = `${action} cafeteira`;
+        document.getElementById("userInput").value = message;
+        await sendMessage();
+      }
+
+      // Chat
+      async function sendMessage() {
+        if (isProcessing) return;
+
+        const input = document.getElementById("userInput");
+        const sendButton = document.getElementById("sendButton");
+        const message = input.value.trim();
+
+        if (!message) return;
+
+        isProcessing = true;
+        sendButton.disabled = true;
+        sendButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+        appendMessage(message, "user-message");
+        input.value = "";
+
+        try {
+          const response = await fetch("/chat", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              conversation_id: conversationId,
+              message: message,
+            }),
+          });
+
+          const data = await response.json();
+
+          if (data && data.answer) {
+            appendMessage(data.answer, "bot-message");
+            if (data.conversation_id) {
+              conversationId = data.conversation_id;
+            }
+            updateStatus();
+          }
+        } catch (error) {
+          console.error("Erro:", error);
+          appendMessage(
+            "Desculpe, ocorreu um erro ao processar sua mensagem.",
+            "bot-message"
+          );
+        } finally {
+          isProcessing = false;
+          sendButton.disabled = false;
+          sendButton.innerHTML = '<i class="fas fa-paper-plane"></i> Enviar';
+          input.focus();
         }
+      }
 
-        setInterval(updateStatus, 2000);
+      function appendMessage(content, className) {
+        const messagesContainer = document.getElementById("messages");
+        const messageDiv = document.createElement("div");
+        messageDiv.className = `message ${className}`;
+        messageDiv.textContent = content;
+        messagesContainer.appendChild(messageDiv);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+      }
 
-        async function controlCoffee(action) {
-            console.log("Ação solicitada:", action);
-            const message = `${action} cafeteira`;
-            console.log("Mensagem a ser enviada:", message);
-            document.getElementById('userInput').value = message;
-            await sendMessage();
-        }
-
-        async function sendMessage() {
-            if (isProcessing) return;
-
-            const input = document.getElementById('userInput');
-            const sendButton = document.getElementById('sendButton');
-            const message = input.value.trim();
-            
-            if (!message) return;
-
-            console.log("Enviando mensagem:", message);
-
-            isProcessing = true;
-            sendButton.disabled = true;
-            sendButton.textContent = 'Enviando...';
-
-            appendMessage(message, 'user-message');
-            input.value = '';
-
-            try {
-                const response = await fetch('/chat', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        conversation_id: conversationId,
-                        message: message
-                    })
-                });
-
-                const data = await response.json();
-                console.log("Resposta recebida:", data);
+      // Funções dos Modais
+      async function showGuide() {
+        try {
+          const response = await fetch("/guide");
+          const guide = await response.json();
+          let html = `
+            <div class="cards-grid">
+                <div class="card">
+                    <h3 class="card-title"><i class="fas fa-terminal"></i> Comandos Básicos</h3>
+                    <ul>
+                        ${guide.basic.commands
+                          .map((cmd) => `<li>${cmd}</li>`)
+                          .join("")}
+                    </ul>
+                </div>
                 
-                if (data && data.answer) {
-                    appendMessage(data.answer, 'bot-message');
-                    if (data.conversation_id) {
-                        conversationId = data.conversation_id;
-                    }
-                    updateStatus();
-                }
-            } catch (error) {
-                console.error('Erro:', error);
-                appendMessage('Desculpe, ocorreu um erro ao processar sua mensagem.', 'bot-message');
-            } finally {
-                isProcessing = false;
-                sendButton.disabled = false;
-                sendButton.textContent = 'Enviar';
-                input.focus();
-            }
+                <div class="card">
+                    <h3 class="card-title"><i class="fas fa-desktop"></i> Interface</h3>
+                    <ul>
+                        ${guide.basic.interface
+                          .map((item) => `<li>${item}</li>`)
+                          .join("")}
+                    </ul>
+                </div>
+
+                <div class="card">
+                    <h3 class="card-title"><i class="fas fa-star"></i> Funcionalidades</h3>
+                    <ul>
+                        ${guide.advanced.features
+                          .map((feature) => `<li>${feature}</li>`)
+                          .join("")}
+                    </ul>
+                </div>
+
+                <div class="card">
+                    <h3 class="card-title"><i class="fas fa-lightbulb"></i> Dicas</h3>
+                    <ul>
+                        ${guide.advanced.tips
+                          .map((tip) => `<li>${tip}</li>`)
+                          .join("")}
+                    </ul>
+                </div>
+
+                <div class="card">
+                    <h3 class="card-title"><i class="fas fa-sliders-h"></i> Configurações</h3>
+                    <h4>Temperaturas Ideais:</h4>
+                    <ul>
+                        ${Object.entries(guide.settings.temperature)
+                          .map(
+                            ([k, v]) => `<li><strong>${k}:</strong> ${v}</li>`
+                          )
+                          .join("")}
+                    </ul>
+                    <h4>Manutenção:</h4>
+                    <ul>
+                        ${Object.entries(guide.settings.maintenance)
+                          .map(
+                            ([k, v]) => `<li><strong>${k}:</strong> ${v}</li>`
+                          )
+                          .join("")}
+                    </ul>
+                </div>
+
+                <div class="card">
+                    <h3 class="card-title"><i class="fas fa-keyboard"></i> Atalhos</h3>
+                    <h4>Teclado:</h4>
+                    <ul>
+                        ${guide.shortcuts.keyboard
+                          .map((shortcut) => `<li>${shortcut}</li>`)
+                          .join("")}
+                    </ul>
+                    <h4>Comandos de Voz:</h4>
+                    <ul>
+                        ${guide.shortcuts.voice
+                          .map((cmd) => `<li>${cmd}</li>`)
+                          .join("")}
+                    </ul>
+                </div>
+            </div>
+        `;
+          document.getElementById("guideContent").innerHTML = html;
+          document.getElementById("guideModal").style.display = "block";
+        } catch (error) {
+          console.error("Erro ao carregar guia:", error);
+          document.getElementById("guideContent").innerHTML = `
+            <div class="card error">
+                <h3>Erro ao carregar o guia</h3>
+                <p>Por favor, tente novamente mais tarde.</p>
+            </div>
+        `;
+        }
+      }
+      async function showRecipes() {
+        const response = await fetch("/recipes");
+        const recipes = await response.json();
+        const content = document.getElementById("recipesContent");
+
+        function renderRecipeTab(category) {
+          const recipesInCategory = recipes[category];
+          let html = '<div class="cards-grid">';
+
+          for (const [key, recipe] of Object.entries(recipesInCategory)) {
+            html += `
+                        <div class="card">
+                            <h3 class="card-title">${recipe.name}</h3>
+                            <p>${recipe.description || ""}</p>
+                            <div class="recipe-details">
+                                <p><strong>Temperatura:</strong> ${
+                                  recipe.temperature
+                                }</p>
+                                <p><strong>Tempo:</strong> ${
+                                  recipe.time || recipe.preparation_time
+                                }</p>
+                                ${
+                                  recipe.ingredients
+                                    ? `
+                                    <h4>Ingredientes:</h4>
+                                    <ul>
+                                        ${recipe.ingredients
+                                          .map((ing) => `<li>${ing}</li>`)
+                                          .join("")}
+                                    </ul>
+                                `
+                                    : ""
+                                }
+                                <h4>Passos:</h4>
+                                <ol>
+                                    ${recipe.steps
+                                      .map((step) => `<li>${step}</li>`)
+                                      .join("")}
+                                </ol>
+                                ${
+                                  recipe.tips
+                                    ? `
+                                    <h4>Dicas:</h4>
+                                    <ul>
+                                        ${recipe.tips
+                                          .map((tip) => `<li>${tip}</li>`)
+                                          .join("")}
+                                    </ul>
+                                `
+                                    : ""
+                                }
+                            </div>
+                        </div>
+                    `;
+          }
+          html += "</div>";
+          content.innerHTML = html;
         }
 
-        function appendMessage(content, className) {
-            const messagesContainer = document.getElementById('messages');
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${className}`;
-            messageDiv.textContent = content;
-            messagesContainer.appendChild(messageDiv);
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        function showRecipeTab(category) {
+          const tabs = document.querySelectorAll("#recipesTabs .tab-button");
+          tabs.forEach((tab) => tab.classList.remove("active"));
+          event.target.classList.add("active");
+          renderRecipeTab(category);
         }
 
-        // Event Listeners
-        document.getElementById('userInput').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter' && !isProcessing) {
-                sendMessage();
-            }
-        });
+        document.getElementById("recipesModal").style.display = "block";
+        renderRecipeTab("tradicional"); // Mostra primeira tab por padrão
+        window.showRecipeTab = showRecipeTab;
+      }
 
-        // Inicializar
+      async function showBrewingMethods() {
+        const response = await fetch("/brewing-methods");
+        const methods = await response.json();
+        let html = `
+                <div class="cards-grid">
+                    ${Object.entries(methods)
+                      .map(
+                        ([key, method]) => `
+                        <div class="card">
+                            <h3 class="card-title">${method.name}</h3>
+                            <div class="method-details">
+                                ${
+                                  method.equipment
+                                    ? `
+                                    <h4>Equipamentos:</h4>
+                                    <ul>
+                                        ${method.equipment
+                                          .map((eq) => `<li>${eq}</li>`)
+                                          .join("")}
+                                    </ul>
+                                `
+                                    : ""
+                                }
+                                <p><strong>Moagem:</strong> ${
+                                  method.grind_size || "-"
+                                }</p>
+                                <p><strong>Proporção:</strong> ${
+                                  method.ratio || "-"
+                                }</p>
+                                <p><strong>Tempo:</strong> ${
+                                  method.time || "-"
+                                }</p>
+                                <p><strong>Temperatura:</strong> ${
+                                  method.temperature || "-"
+                                }</p>
+                                ${
+                                  method.steps
+                                    ? `
+                                    <h4>Passos:</h4>
+                                    <ol>
+                                        ${method.steps
+                                          .map((step) => `<li>${step}</li>`)
+                                          .join("")}
+                                    </ol>
+                                `
+                                    : ""
+                                }
+                                ${
+                                  method.troubleshooting
+                                    ? `
+                                    <h4>Solução de Problemas:</h4>
+                                    <ul>
+                                        ${Object.entries(method.troubleshooting)
+                                          .map(
+                                            ([problem, solution]) =>
+                                              `<li><strong>${problem}:</strong> ${solution}</li>`
+                                          )
+                                          .join("")}
+                                    </ul>
+                                `
+                                    : ""
+                                }
+                            </div>
+                        </div>
+                    `
+                      )
+                      .join("")}
+                </div>
+            `;
+        document.getElementById("brewingContent").innerHTML = html;
+        document.getElementById("brewingModal").style.display = "block";
+      }
+
+      async function showEquipment() {
+        const response = await fetch("/equipment");
+        const equipment = await response.json();
+
+        function renderEquipmentTab(category) {
+          let html = '<div class="cards-grid">';
+
+          if (category === "controllers") {
+            Object.entries(equipment.controllers).forEach(
+              ([key, controller]) => {
+                html += `
+                            <div class="card">
+                                <h3 class="card-title">${controller.name}</h3>
+                                <p><strong>Função:</strong> ${
+                                  controller.function
+                                }</p>
+                                <h4>Especificações:</h4>
+                                <ul>
+                                    ${controller.specs
+                                      .map((spec) => `<li>${spec}</li>`)
+                                      .join("")}
+                                </ul>
+                                ${
+                                  controller.pins
+                                    ? `
+                                    <h4>Portas:</h4>
+                                    <ul>
+                                        ${Object.entries(controller.pins)
+                                          .map(
+                                            ([pin, use]) =>
+                                              `<li>${pin}: ${use}</li>`
+                                          )
+                                          .join("")}
+                                    </ul>
+                                `
+                                    : ""
+                                }
+                            </div>
+                        `;
+              }
+            );
+          } else {
+            Object.entries(equipment[category]).forEach(([key, device]) => {
+              html += `
+                            <div class="card">
+                                <h3 class="card-title">${device.model}</h3>
+                                <p><strong>Tipo:</strong> ${device.type}</p>
+                                <p><strong>Faixa:</strong> ${device.range}</p>
+                                ${
+                                  device.precision
+                                    ? `<p><strong>Precisão:</strong> ${device.precision}</p>`
+                                    : ""
+                                }
+                                <span class="badge badge-${
+                                  device.status === "active"
+                                    ? "success"
+                                    : "warning"
+                                }">
+                                    ${device.status}
+                                </span>
+                            </div>
+                        `;
+            });
+          }
+          html += "</div>";
+          document.getElementById("equipmentContent").innerHTML = html;
+        }
+
+        function showEquipmentTab(category) {
+          const tabs = document.querySelectorAll(".tabs .tab-button");
+          tabs.forEach((tab) => tab.classList.remove("active"));
+          event.target.classList.add("active");
+          renderEquipmentTab(category);
+        }
+
+        document.getElementById("equipmentModal").style.display = "block";
+        renderEquipmentTab("controllers"); // Mostra primeira tab por padrão
+        window.showEquipmentTab = showEquipmentTab;
+      }
+
+      async function showMaintenance() {
+        const response = await fetch("/maintenance-guide");
+        const guide = await response.json();
+
+        function renderMaintenanceTab(period) {
+          let html = '<div class="cards-grid">';
+          guide[period].forEach((task) => {
+            html += `
+                        <div class="card">
+                            <h3 class="card-title">${task.task}</h3>
+                            <p>${task.description}</p>
+                            <span class="badge badge-${
+                              task.importance === "Alta"
+                                ? "error"
+                                : task.importance === "Média"
+                                ? "warning"
+                                : "success"
+                            }">
+                                ${task.importance}
+                            </span>
+                            ${
+                              task.frequency
+                                ? `<p><strong>Frequência:</strong> ${task.frequency}</p>`
+                                : ""
+                            }
+                            ${
+                              task.steps
+                                ? `
+                                <h4>Passos:</h4>
+                                <ol>
+                                    ${task.steps
+                                      .map((step) => `<li>${step}</li>`)
+                                      .join("")}
+                                </ol>
+                            `
+                                : ""
+                            }
+                        </div>
+                    `;
+          });
+          html += "</div>";
+          document.getElementById("maintenanceContent").innerHTML = html;
+        }
+
+        function showMaintenanceTab(period) {
+          const tabs = document.querySelectorAll(".tabs .tab-button");
+          tabs.forEach((tab) => tab.classList.remove("active"));
+          event.target.classList.add("active");
+          renderMaintenanceTab(period);
+        }
+
+        document.getElementById("maintenanceModal").style.display = "block";
+        renderMaintenanceTab("daily"); // Mostra primeira tab por padrão
+        window.showMaintenanceTab = showMaintenanceTab;
+      }
+
+      async function showDocs() {
+        const response = await fetch("/docs");
+        const docs = await response.json();
+
+        function renderDocsTab(section) {
+          let html = "";
+          const content = docs[section];
+
+          if (section === "overview") {
+            html = `
+                        <div class="card">
+                            <h3 class="card-title">${content.title}</h3>
+                            <p>${content.description}</p>
+                            <h4>Componentes:</h4>
+                            <ul>
+                                ${content.components
+                                  .map((comp) => `<li>${comp}</li>`)
+                                  .join("")}
+                            </ul>
+                        </div>
+                    `;
+          } else if (section === "setup") {
+            html = `
+                        <div class="cards-grid">
+                            <div class="card">
+                                <h3 class="card-title">Hardware Necessário</h3>
+                                <ul>
+                                    ${content.requirements.hardware
+                                      .map((hw) => `<li>${hw}</li>`)
+                                      .join("")}
+                                </ul>
+                            </div>
+                            <div class="card">
+                                <h3 class="card-title">Software Necessário</h3>
+                                <ul>
+                                    ${content.requirements.software
+                                      .map((sw) => `<li>${sw}</li>`)
+                                      .join("")}
+                                </ul>
+                            </div>
+                            <div class="card">
+                                <h3 class="card-title">Instalação</h3>
+                                <ol>
+                                    ${content.installation
+                                      .map((step) => `<li>${step}</li>`)
+                                      .join("")}
+                                </ol>
+                            </div>
+                        </div>
+                    `;
+          } else if (section === "api") {
+            html = `
+                        <div class="card">
+                            <h3 class="card-title">Endpoints da API</h3>
+                            <div class="api-endpoints">
+                                ${content.endpoints
+                                  .map(
+                                    (endpoint) => `
+                                    <div class="endpoint">
+                                        <code>${endpoint.method} ${endpoint.route}</code>
+                                        <p>${endpoint.description}</p>
+                                    </div>
+                                `
+                                  )
+                                  .join("")}
+                            </div>
+                        </div>
+                    `;
+          }
+
+          document.getElementById("docsContent").innerHTML = html;
+        }
+
+        function showDocsTab(section) {
+          const tabs = document.querySelectorAll(".tabs .tab-button");
+          tabs.forEach((tab) => tab.classList.remove("active"));
+          event.target.classList.add("active");
+          renderDocsTab(section);
+        }
+
+        document.getElementById("docsModal").style.display = "block";
+        renderDocsTab("overview"); // Mostra primeira tab por padrão
+        window.showDocsTab = showDocsTab;
+      }
+
+      async function showFeatures() {
+        const response = await fetch("/features");
+        const features = await response.json();
+        let html = `
+                <div class="cards-grid">
+                    ${Object.entries(features)
+                      .map(
+                        ([key, category]) => `
+                        <div class="card">
+                            <h3 class="card-title">${category.title}</h3>
+                            <ul>
+                                ${category.features
+                                  .map((feature) => `<li>${feature}</li>`)
+                                  .join("")}
+                            </ul>
+                        </div>
+                    `
+                      )
+                      .join("")}
+                </div>
+            `;
+        document.getElementById("featuresContent").innerHTML = html;
+        document.getElementById("featuresModal").style.display = "block";
+      }
+
+      function closeModal(modalId) {
+        document.getElementById(modalId).style.display = "none";
+      }
+
+      // Event Listeners
+      document.addEventListener("DOMContentLoaded", function () {
         updateStatus();
+
+        // Fechar modais ao clicar fora
+        window.onclick = function (event) {
+          if (event.target.classList.contains("modal")) {
+            event.target.style.display = "none";
+          }
+        };
+
+        // Enter para enviar mensagem
+        document
+          .getElementById("userInput")
+          .addEventListener("keypress", function (e) {
+            if (e.key === "Enter" && !isProcessing) {
+              sendMessage();
+            }
+          });
+      });
+
+      // Atualização automática de status
+      setInterval(updateStatus, 2000);
     </script>
-</body>
+  </body>
 </html>

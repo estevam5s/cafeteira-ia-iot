@@ -1,0 +1,41 @@
+services:
+  mosquitto:
+    image: eclipse-mosquitto:latest
+    container_name: mosquitto
+    ports:
+      - "1884:1883"  
+      - "9001:9001"
+    volumes:
+      - ./mosquitto/config:/mosquitto/config
+      - ./mosquitto/data:/mosquitto/data
+      - ./mosquitto/log:/mosquitto/log
+    networks:
+      - coffeeai-network
+    restart: unless-stopped
+
+  coffeeai:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    container_name: coffeeai
+    ports:
+      - "5000:5000"  
+    environment:
+      - FLASK_APP=app.py
+      - FLASK_ENV=development
+      - FLASK_DEBUG=1
+      - DIFY_API_KEY=app-TgulottYoZSmZkVGtfTjR9EK
+      - MQTT_BROKER=mosquitto
+      - MQTT_PORT=1883
+      - HOST=0.0.0.0  # Adiciona esta linha
+    volumes:
+      - .:/app
+    depends_on:
+      - mosquitto
+    networks:
+      - coffeeai-network
+    restart: unless-stopped
+
+networks:
+  coffeeai-network:
+    driver: bridge
