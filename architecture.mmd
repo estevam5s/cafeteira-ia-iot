@@ -1,5 +1,5 @@
 flowchart TD
-    A[Interface Web\nindex.html] -->|HTTP POST| B[Servidor Python\napp.py]
+    A[Interface Web\nsystem.html] -->|HTTP POST| B[Servidor Python\napp.py]
     B -->|API Request| C[Dify AI]
     C -->|API Response| B
     B -->|Publish MQTT| D[Broker MQTT]

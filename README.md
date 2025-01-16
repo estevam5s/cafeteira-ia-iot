@@ -6,7 +6,7 @@ O CoffeeAI Control é um sistema inteligente de controle de cafeteira que integr
 ### 1.1 Arquitetura do Sistema
 ```mermaid
 flowchart TD
-    A[Interface Web\nindex.html] -->|HTTP POST| B[Servidor Python\napp.py]
+    A[Interface Web\nsystem.html] -->|HTTP POST| B[Servidor Python\napp.py]
     B -->|API Request| C[Dify AI]
     C -->|API Response| B
     B -->|Publish MQTT| D[Broker MQTT]
@@ -29,7 +29,7 @@ coffee-control/
 ├── app.py                 # Servidor backend Flask
 ├── requirements.txt       # Dependências Python
 ├── templates/            
-│   └── index.html        # Interface web
+│   └── system.html        # Interface web
 ├── arduino/
 │   └── CoffeeMQTT/
 │       └── CoffeeMQTT.ino # Código do Arduino
@@ -55,7 +55,7 @@ coffee-control/
 - `GET /equipment-info`: Informações dos equipamentos
 - `GET /maintenance-info`: Status de manutenção
 
-### 3.2 Frontend (index.html)
+### 3.2 Frontend (system.html)
 - **Design**: Interface futurista com efeitos visuais
 - **Componentes**:
   - Painel de controle

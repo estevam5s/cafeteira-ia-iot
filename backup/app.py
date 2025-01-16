@@ -390,7 +390,7 @@ def connect_mqtt():
 
 @app.route('/')
 def home():
-    return render_template('index.html')
+    return render_template('system.html')
 
 @app.route('/chat', methods=['POST'])
 def chat():

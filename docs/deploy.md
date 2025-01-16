@@ -36,7 +36,7 @@ coffee-control/
 ├── gunicorn.conf.py      # Configuração Gunicorn
 ├── .env                  # Variáveis de ambiente
 ├── templates/            # Frontend
-│   └── index.html
+│   └── system.html
 └── scripts/             # Scripts de deploy
     ├── setup-vpn.sh
     └── setup-mqtt.sh
