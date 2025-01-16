@@ -1657,6 +1657,46 @@ CORS(app)
 SECRET_KEY = os.getenv('SECRET_KEY', 'sua_chave_secreta_aqui')
 DATABASE = 'coffee.db'
 
+def token_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        token = None
+
+        # Adicione debug logs
+        print("Headers:", request.headers)
+        print("Cookies:", request.cookies)
+
+        if 'Authorization' in request.headers:
+            token = request.headers['Authorization'].split(' ')[1]
+        elif request.cookies.get('token'):
+            token = request.cookies.get('token')
+
+        if not token:
+            print("Nenhum token encontrado")
+            return redirect(url_for('auth'))
+
+        try:
+            print("Decodificando token:", token)
+            data = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+            
+            db = get_db()
+            cursor = db.cursor()
+            cursor.execute('SELECT * FROM users WHERE email = ?', (data['email'],))
+            current_user = cursor.fetchone()
+            db.close()
+            
+            if current_user is None:
+                print("Usuário não encontrado")
+                return redirect(url_for('auth'))
+                
+            return f(dict(current_user), *args, **kwargs)
+        except Exception as e:
+            print(f"Erro na verificação do token: {e}")
+            return redirect(url_for('auth'))
+
+    return decorated
+
+
 def init_db():
     conn = sqlite3.connect(DATABASE)
     c = conn.cursor()
@@ -1723,6 +1763,7 @@ def login():
             (data['email'], data['password'])
         )
         user = cursor.fetchone()
+        db.close()
 
         if user:
             token = jwt.encode({
@@ -1734,10 +1775,18 @@ def login():
                 'token': token,
                 'name': user['name'],
                 'email': user['email'],
-                'redirect': '/system'  # Adicionando URL de redirecionamento
+                'redirect': '/system'
             })
             
-            response.set_cookie('token', token, httponly=True, secure=True)
+            # Configura o cookie com o token
+            response.set_cookie(
+                'token', 
+                token,
+                httponly=True, 
+                secure=True if not app.debug else False,
+                samesite='Lax'
+            )
+            
             return response
 
         return jsonify({'message': 'Credenciais inválidas'}), 401
@@ -1745,39 +1794,53 @@ def login():
     except Exception as e:
         print(f"Erro no login: {e}")
         return jsonify({'message': 'Erro ao fazer login'}), 500
-    finally:
-        db.close()
 
 def token_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
         token = None
+        print("Verificando token")
 
+        # Verifica token no header ou cookie
         if 'Authorization' in request.headers:
             token = request.headers['Authorization'].split(' ')[1]
         elif request.cookies.get('token'):
             token = request.cookies.get('token')
 
         if not token:
+            print("Token não encontrado")
+            if request.is_json:
+                return jsonify({'message': 'Token não encontrado'}), 401
             return redirect(url_for('auth'))
 
         try:
+            print(f"Decodificando token: {token[:20]}...")  # Log para debug
             data = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+            
             db = get_db()
             cursor = db.cursor()
             cursor.execute('SELECT * FROM users WHERE email = ?', (data['email'],))
             current_user = cursor.fetchone()
+            db.close()
             
             if current_user is None:
+                print("Usuário não encontrado no banco")
+                if request.is_json:
+                    return jsonify({'message': 'Usuário não encontrado'}), 401
                 return redirect(url_for('auth'))
-                
+
+            return f(dict(current_user), *args, **kwargs)
+
+        except jwt.ExpiredSignatureError:
+            print("Token expirado")
+            return redirect(url_for('auth'))
+        except jwt.InvalidTokenError:
+            print("Token inválido")
+            return redirect(url_for('auth'))
         except Exception as e:
             print(f"Erro na verificação do token: {e}")
             return redirect(url_for('auth'))
-        finally:
-            db.close()
 
-        return f(current_user, *args, **kwargs)
     return decorated
 
 # Configurações Dify
@@ -2206,19 +2269,56 @@ def auth():
     if token:
         try:
             data = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
-            current_user = next((user for user in users if user['email'] == data['email']), None)
-            if current_user:
+            db = get_db()
+            cursor = db.cursor()
+            cursor.execute('SELECT * FROM users WHERE email = ?', (data['email'],))
+            user = cursor.fetchone()
+            db.close()
+            
+            if user:
                 return redirect(url_for('system'))
         except:
             pass
     return render_template('auth.html')
 
+@app.route('/check-auth')
+def check_auth():
+    token = None
+    if 'Authorization' in request.headers:
+        token = request.headers['Authorization'].split(' ')[1]
+    elif request.cookies.get('token'):
+        token = request.cookies.get('token')
+
+    if not token:
+        return jsonify({'authenticated': False}), 401
+
+    try:
+        data = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+        return jsonify({'authenticated': True})
+    except:
+        return jsonify({'authenticated': False}), 401
+
 # Rota do sistema (protegida)
 @app.route('/system')
-@token_required
-def system(current_user):
-    print(f"Usuário autenticado: {current_user['email']}")  # Log para debug
-    return render_template('system.html', user=current_user)
+def system():
+    token = request.cookies.get('token')
+    if not token:
+        return redirect(url_for('auth'))
+    
+    try:
+        data = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+        db = get_db()
+        cursor = db.cursor()
+        cursor.execute('SELECT * FROM users WHERE email = ?', (data['email'],))
+        user = cursor.fetchone()
+        db.close()
+        
+        if user:
+            return render_template('system.html', user=dict(user))
+    except:
+        pass
+    
+    return redirect(url_for('auth'))
 
 @app.route('/chat', methods=['POST'])
 def chat():

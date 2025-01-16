@@ -4,6 +4,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   <title>CoffeeAI Control - Sistema Inteligente de Cafeteira</title>
   <!-- Fontes -->
   <link
@@ -859,33 +862,38 @@
 
   <script>
     // Adicione no início do seu script existente
-    document.addEventListener('DOMContentLoaded', function () {
-      // Verifica se existe um token
-      const token = localStorage.getItem('token');
-      if (!token) {
-        window.location.href = '/auth.html';
-        return;
-      }
-
-      // Adiciona o token em todas as requisições
-      const originalFetch = window.fetch;
-      window.fetch = function () {
+    document.addEventListener('DOMContentLoaded', function() {
+    // Obter token do localStorage
+    const token = localStorage.getItem('token');
+    
+    // Configurar o interceptor de requisições
+    const originalFetch = window.fetch;
+    window.fetch = function() {
         let args = Array.prototype.slice.call(arguments);
-        if (args[1] && args[1].headers) {
-          args[1].headers['Authorization'] = `Bearer ${token}`;
-        } else if (args[1]) {
-          args[1].headers = { 'Authorization': `Bearer ${token}` };
-        } else {
-          args[1] = { headers: { 'Authorization': `Bearer ${token}` } };
+        
+        // Adiciona o token em todas as requisições
+        if (token) {
+            if (args[1] && args[1].headers) {
+                args[1].headers['Authorization'] = `Bearer ${token}`;
+            } else if (args[1]) {
+                args[1].headers = {'Authorization': `Bearer ${token}`};
+            } else {
+                args[1] = {headers: {'Authorization': `Bearer ${token}`}};
+            }
         }
+        
         return originalFetch.apply(this, args);
-      };
-    });
+    };
+
+    // Inicia a atualização de status
+    updateStatus();
+    setInterval(updateStatus, 2000);
+});
 
     // Adicione uma função de logout
     function logout() {
       localStorage.removeItem('token');
-      window.location.href = '/auth.html';
+      window.location.href = '/auth';
     }
     // Variáveis globais
     let conversationId = null;

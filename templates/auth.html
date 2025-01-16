@@ -3,9 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <meta http-equiv="Pragma" content="no-cache">
-    <meta http-equiv="Expires" content="0">
     <title>CoffeeAI Control - Autenticação</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
@@ -296,7 +293,6 @@
             document.getElementById('registerForm').classList.toggle('active', form === 'register');
         }
 
-        // Função de login
         async function handleLogin(event) {
     event.preventDefault();
     
@@ -321,23 +317,26 @@
             successElement.style.display = 'block';
             errorElement.style.display = 'none';
             
-            // Salva o token
+            // Guarda o token no localStorage
             localStorage.setItem('token', data.token);
             
-            // Redireciona para a página do sistema
-            window.location.href = data.redirect || '/system';
+            // Redireciona após um breve delay
+            setTimeout(() => {
+                window.location.href = data.redirect;
+            }, 500);
         } else {
             errorElement.textContent = data.message || 'Erro ao fazer login';
             errorElement.style.display = 'block';
             successElement.style.display = 'none';
         }
     } catch (error) {
+        console.error('Erro:', error);
         errorElement.textContent = 'Erro ao conectar ao servidor';
         errorElement.style.display = 'block';
         successElement.style.display = 'none';
     }
 }
-        // Função de registro
+// Função de registro
         async function handleRegister(event) {
             event.preventDefault();
             
@@ -387,32 +386,12 @@
         }
 
         // Verifica se já está autenticado
-        // Adicione no início do script do system.html
-document.addEventListener('DOMContentLoaded', function() {
-    const token = localStorage.getItem('token');
-    if (!token) {
-        window.location.href = '/auth';
-        return;
-    }
-    
-    // Adiciona o token em todas as requisições
-    const originalFetch = window.fetch;
-    window.fetch = function() {
-        let args = Array.prototype.slice.call(arguments);
-        if (args[1] && args[1].headers) {
-            args[1].headers['Authorization'] = `Bearer ${token}`;
-        } else if (args[1]) {
-            args[1].headers = {'Authorization': `Bearer ${token}`};
-        } else {
-            args[1] = {headers: {'Authorization': `Bearer ${token}`}};
-        }
-        return originalFetch.apply(this, args);
-    };
-
-    // Inicia a atualização de status
-    updateStatus();
-    setInterval(updateStatus, 2000);
-});
+        document.addEventListener('DOMContentLoaded', function() {
+            const token = localStorage.getItem('token');
+            if (token) {
+                window.location.href = '/system';
+            }
+        });
     </script>
 </body>
 </html>
