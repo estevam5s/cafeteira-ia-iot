@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CoffeeAI Control - Autenticação</title>
+    <title>CoffeeAI Control - Login</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         :root {
             --primary-neon: #00ff88;
@@ -28,68 +28,44 @@
         body {
             min-height: 100vh;
             background: linear-gradient(135deg, var(--bg-dark), var(--bg-darker));
-            color: var(--text-light);
-        }
-
-        .container {
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
-            padding: 2rem;
+            color: var(--text-light);
+            padding: 20px;
         }
 
-        .auth-content {
+        .auth-container {
             width: 100%;
             max-width: 1200px;
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 2rem;
+            padding: 2rem;
             background: var(--glass-bg);
             border-radius: 20px;
             border: 1px solid var(--glass-border);
             backdrop-filter: blur(10px);
-            overflow: hidden;
         }
 
         .info-section {
-            padding: 3rem;
+            padding: 2rem;
             background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
         }
 
         .info-section h1 {
             font-family: 'Orbitron', sans-serif;
             font-size: 2.5rem;
             background: linear-gradient(45deg, var(--primary-neon), var(--accent-pink));
-            -webkit-background-clip: text;
+            /* -webkit-background-clip: text; */
             -webkit-text-fill-color: transparent;
             margin-bottom: 1.5rem;
         }
 
-        .feature-list {
-            list-style: none;
-            margin-top: 2rem;
-        }
-
-        .feature-list li {
-            display: flex;
-            align-items: center;
-            margin-bottom: 1rem;
-            font-size: 1.1rem;
-        }
-
-        .feature-list i {
-            color: var(--primary-neon);
-            margin-right: 1rem;
-        }
-
-        .auth-forms {
-            padding: 3rem;
-            position: relative;
-        }
-
         .form-container {
             display: none;
+            padding: 2rem;
         }
 
         .form-container.active {
@@ -122,7 +98,6 @@
             border-radius: 8px;
             color: var(--text-light);
             font-size: 1rem;
-            transition: all 0.3s ease;
         }
 
         .form-group input:focus {
@@ -142,12 +117,20 @@
             font-size: 1rem;
             cursor: pointer;
             transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
         }
 
         .auth-button:hover {
             background: var(--primary-glow);
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(0, 255, 136, 0.3);
+        }
+
+        .auth-button i {
+            font-size: 1.2rem;
         }
 
         .form-footer {
@@ -184,159 +167,178 @@
             color: var(--primary-neon);
         }
 
+        .feature-list {
+            list-style: none;
+            margin-top: 2rem;
+        }
+
+        .feature-list li {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+        }
+
+        .feature-list i {
+            color: var(--primary-neon);
+            margin-right: 1rem;
+            width: 24px;
+            text-align: center;
+        }
+
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(-10px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
         @media (max-width: 768px) {
-            .auth-content {
+            .auth-container {
                 grid-template-columns: 1fr;
+                padding: 1rem;
             }
 
             .info-section {
                 display: none;
             }
-
-            .auth-forms {
-                padding: 2rem;
-            }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="auth-content">
-            <!-- Seção de Informações -->
-            <div class="info-section">
-                <h1>CoffeeAI Control</h1>
-                <p>Sistema inteligente de controle para sua cafeteira. Uma solução moderna para um café perfeito.</p>
-                
-                <ul class="feature-list">
-                    <li><i class="fas fa-coffee"></i> Controle remoto da sua cafeteira</li>
-                    <li><i class="fas fa-thermometer-half"></i> Monitoramento de temperatura em tempo real</li>
-                    <li><i class="fas fa-brain"></i> Assistente virtual inteligente</li>
-                    <li><i class="fas fa-book"></i> Receitas e modos de preparo</li>
-                    <li><i class="fas fa-tools"></i> Manutenção preventiva</li>
-                    <li><i class="fas fa-chart-line"></i> Análise de consumo</li>
-                    <li><i class="fas fa-bell"></i> Notificações e alertas</li>
-                </ul>
+    <div class="auth-container">
+        <!-- Seção de Informações -->
+        <div class="info-section">
+            <h1>CoffeeAI Control</h1>
+            <p>Sistema inteligente de controle para sua cafeteira. Uma solução moderna para um café perfeito.</p>
+            
+            <ul class="feature-list">
+                <li><i class="fas fa-coffee"></i> Controle remoto da sua cafeteira</li>
+                <li><i class="fas fa-thermometer-half"></i> Monitoramento de temperatura em tempo real</li>
+                <li><i class="fas fa-brain"></i> Assistente virtual inteligente</li>
+                <li><i class="fas fa-book"></i> Receitas e modos de preparo</li>
+                <li><i class="fas fa-tools"></i> Manutenção preventiva</li>
+                <li><i class="fas fa-chart-line"></i> Análise de consumo</li>
+                <li><i class="fas fa-bell"></i> Notificações e alertas</li>
+            </ul>
+        </div>
+
+        <!-- Seção de Formulários -->
+        <div class="auth-forms">
+            <!-- Formulário de Login -->
+            <div id="loginForm" class="form-container active">
+                <h2 class="form-title">Login</h2>
+                <div class="message error-message" id="loginError"></div>
+                <div class="message success-message" id="loginSuccess"></div>
+
+                <form onsubmit="return handleLogin(event)">
+                    <div class="form-group">
+                        <label for="loginEmail">Email</label>
+                        <input type="email" id="loginEmail" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="loginPassword">Senha</label>
+                        <input type="password" id="loginPassword" required>
+                    </div>
+                    <button type="submit" class="auth-button">
+                        <i class="fas fa-sign-in-alt"></i> Entrar
+                    </button>
+                </form>
+
+                <div class="form-footer">
+                    <p>Não tem uma conta? <a onclick="toggleForm('register')">Registre-se</a></p>
+                </div>
             </div>
 
-            <!-- Seção de Formulários -->
-            <div class="auth-forms">
-                <!-- Formulário de Login -->
-                <div id="loginForm" class="form-container active">
-                    <h2 class="form-title">Login</h2>
-                    <div class="message error-message" id="loginError"></div>
-                    <div class="message success-message" id="loginSuccess"></div>
+            <!-- Formulário de Registro -->
+            <div id="registerForm" class="form-container">
+                <h2 class="form-title">Criar Conta</h2>
+                <div class="message error-message" id="registerError"></div>
+                <div class="message success-message" id="registerSuccess"></div>
 
-                    <form onsubmit="return handleLogin(event)">
-                        <div class="form-group">
-                            <label for="loginEmail">Email</label>
-                            <input type="email" id="loginEmail" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="loginPassword">Senha</label>
-                            <input type="password" id="loginPassword" required>
-                        </div>
-                        <button type="submit" class="auth-button">
-                            <i class="fas fa-sign-in-alt"></i> Entrar
-                        </button>
-                    </form>
-
-                    <div class="form-footer">
-                        <p>Não tem uma conta? <a onclick="toggleForm('register')">Registre-se</a></p>
+                <form onsubmit="return handleRegister(event)">
+                    <div class="form-group">
+                        <label for="registerName">Nome</label>
+                        <input type="text" id="registerName" required>
                     </div>
-                </div>
-
-                <!-- Formulário de Registro -->
-                <div id="registerForm" class="form-container">
-                    <h2 class="form-title">Criar Conta</h2>
-                    <div class="message error-message" id="registerError"></div>
-                    <div class="message success-message" id="registerSuccess"></div>
-
-                    <form onsubmit="return handleRegister(event)">
-                        <div class="form-group">
-                            <label for="registerName">Nome</label>
-                            <input type="text" id="registerName" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="registerEmail">Email</label>
-                            <input type="email" id="registerEmail" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="registerPassword">Senha</label>
-                            <input type="password" id="registerPassword" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="confirmPassword">Confirmar Senha</label>
-                            <input type="password" id="confirmPassword" required>
-                        </div>
-                        <button type="submit" class="auth-button">
-                            <i class="fas fa-user-plus"></i> Registrar
-                        </button>
-                    </form>
-
-                    <div class="form-footer">
-                        <p>Já tem uma conta? <a onclick="toggleForm('login')">Faça login</a></p>
+                    <div class="form-group">
+                        <label for="registerEmail">Email</label>
+                        <input type="email" id="registerEmail" required>
                     </div>
+                    <div class="form-group">
+                        <label for="registerPassword">Senha</label>
+                        <input type="password" id="registerPassword" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="confirmPassword">Confirmar Senha</label>
+                        <input type="password" id="confirmPassword" required>
+                    </div>
+                    <button type="submit" class="auth-button">
+                        <i class="fas fa-user-plus"></i> Registrar
+                    </button>
+                </form>
+
+                <div class="form-footer">
+                    <p>Já tem uma conta? <a onclick="toggleForm('login')">Faça login</a></p>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        // Alternar entre formulários
-        function toggleForm(form) {
-            document.getElementById('loginForm').classList.toggle('active', form === 'login');
-            document.getElementById('registerForm').classList.toggle('active', form === 'register');
+        // Funções de autenticação
+        function toggleForm(formType) {
+            const loginForm = document.getElementById('loginForm');
+            const registerForm = document.getElementById('registerForm');
+            
+            if (formType === 'login') {
+                loginForm.classList.add('active');
+                registerForm.classList.remove('active');
+            } else {
+                loginForm.classList.remove('active');
+                registerForm.classList.add('active');
+            }
         }
 
         async function handleLogin(event) {
-    event.preventDefault();
-    
-    const email = document.getElementById('loginEmail').value;
-    const password = document.getElementById('loginPassword').value;
-    const errorElement = document.getElementById('loginError');
-    const successElement = document.getElementById('loginSuccess');
-
-    try {
-        const response = await fetch('/login', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ email, password }),
-        });
-
-        const data = await response.json();
-
-        if (response.ok) {
-            successElement.textContent = 'Login realizado com sucesso!';
-            successElement.style.display = 'block';
-            errorElement.style.display = 'none';
+            event.preventDefault();
             
-            // Guarda o token no localStorage
-            localStorage.setItem('token', data.token);
-            
-            // Redireciona após um breve delay
-            setTimeout(() => {
-                window.location.href = data.redirect;
-            }, 500);
-        } else {
-            errorElement.textContent = data.message || 'Erro ao fazer login';
-            errorElement.style.display = 'block';
-            successElement.style.display = 'none';
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            const errorElement = document.getElementById('loginError');
+            const successElement = document.getElementById('loginSuccess');
+
+            try {
+                const response = await fetch('/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email, password }),
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    successElement.textContent = 'Login realizado com sucesso!';
+                    successElement.style.display = 'block';
+                    errorElement.style.display = 'none';
+                    
+                    // Redireciona para o sistema após um breve delay
+                    setTimeout(() => {
+                        window.location.href = '/system';
+                    }, 500);
+                } else {
+                    errorElement.textContent = data.message || 'Erro ao fazer login';
+                    errorElement.style.display = 'block';
+                    successElement.style.display = 'none';
+                }
+            } catch (error) {
+                console.error('Erro:', error);
+                errorElement.textContent = 'Erro ao conectar ao servidor';
+                errorElement.style.display = 'block';
+                successElement.style.display = 'none';
+            }
         }
-    } catch (error) {
-        console.error('Erro:', error);
-        errorElement.textContent = 'Erro ao conectar ao servidor';
-        errorElement.style.display = 'block';
-        successElement.style.display = 'none';
-    }
-}
-// Função de registro
+
         async function handleRegister(event) {
             event.preventDefault();
             
@@ -369,7 +371,7 @@
                     successElement.style.display = 'block';
                     errorElement.style.display = 'none';
                     
-                    // Muda para o formulário de login após 2 segundos
+                    // Redireciona para o login após 2 segundos
                     setTimeout(() => {
                         toggleForm('login');
                     }, 2000);
@@ -379,19 +381,12 @@
                     successElement.style.display = 'none';
                 }
             } catch (error) {
+                console.error('Erro:', error);
                 errorElement.textContent = 'Erro ao conectar ao servidor';
                 errorElement.style.display = 'block';
                 successElement.style.display = 'none';
             }
         }
-
-        // Verifica se já está autenticado
-        document.addEventListener('DOMContentLoaded', function() {
-            const token = localStorage.getItem('token');
-            if (token) {
-                window.location.href = '/system';
-            }
-        });
     </script>
 </body>
 </html>
