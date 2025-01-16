@@ -10,7 +10,7 @@ const char* password = "sua_senha";
 
 // Configurações do MQTT
 const char* mqtt_server = "localhost";  // Endereço do seu broker MQTT
-const int mqtt_port = 1883;
+const int mqtt_port = 1884;
 const char* mqtt_topic_command = "cafeteira/comando";
 const char* mqtt_topic_status = "cafeteira/status";
 

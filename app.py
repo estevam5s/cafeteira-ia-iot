@@ -16,7 +16,7 @@ DIFY_API_URL = 'https://api.dify.ai/v1'
 
 # Configurações MQTT
 MQTT_BROKER = "localhost"
-MQTT_PORT = int(os.getenv('MQTT_PORT', 1883))
+MQTT_PORT = int(os.getenv('MQTT_PORT', 1884))
 MQTT_TOPIC_COMMAND = "cafeteira/comando"
 MQTT_TOPIC_STATUS = "cafeteira/status"
 
