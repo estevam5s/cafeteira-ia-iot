@@ -70,7 +70,7 @@
         margin-bottom: 0.5rem; /* Diminui o espaço entre o título e a informação do usuário */
         color: var(--primary-neon);
         text-transform: uppercase;
-        -webkit-background-clip: text; /* Faz o fundo do gradiente aparecer apenas no texto */
+        /* -webkit-background-clip: text; *//* Faz o fundo do gradiente aparecer apenas no texto */
         letter-spacing: 2px;
         background: transparent;
         -webkit-text-fill-color: var(--primary-neon);
@@ -783,7 +783,7 @@
       <div class="modal-content">
         <div class="modal-header">
           <h2 class="modal-title">Guia de Uso</h2>
-          <button class="close-modal" onclick="closeModal('guideModal')">
+          <button class="modal-close" onclick="closeModal('equipmentModal')">
             &times;
           </button>
         </div>
@@ -796,7 +796,7 @@
       <div class="modal-content">
         <div class="modal-header">
           <h2 class="modal-title">Receitas de Café</h2>
-          <button class="close-modal" onclick="closeModal('recipesModal')">
+          <button class="modal-close" onclick="closeModal('equipmentModal')">
             &times;
           </button>
         </div>
@@ -823,7 +823,7 @@
       <div class="modal-content">
         <div class="modal-header">
           <h2 class="modal-title">Modos de Preparo</h2>
-          <button class="close-modal" onclick="closeModal('brewingModal')">
+          <button class="modal-close" onclick="closeModal('equipmentModal')">
             &times;
           </button>
         </div>
@@ -843,7 +843,6 @@
             &times;
           </button>
         </div>
-
         <div class="tabs">
           <button
             class="tab-button active"
@@ -868,7 +867,7 @@
       <div class="modal-content">
         <div class="modal-header">
           <h2 class="modal-title">Manutenção</h2>
-          <button class="close-modal" onclick="closeModal('maintenanceModal')">
+          <button class="modal-close" onclick="closeModal('equipmentModal')">
             &times;
           </button>
         </div>
@@ -895,18 +894,20 @@
       <div class="modal-content">
         <div class="modal-header">
           <h2 class="modal-title">Documentação</h2>
-          <button class="close-modal" onclick="closeModal('docsModal')">
+          <button class="modal-close" onclick="closeModal('equipmentModal')">
             &times;
           </button>
         </div>
         <div class="tabs">
-          <button class="tab-button active" onclick="showDocsTab('overview')">
+          <button class="tab-button active" onclick="showDocsTab('system')">
             Visão Geral
           </button>
-          <button class="tab-button" onclick="showDocsTab('setup')">
+          <button class="tab-button" onclick="showDocsTab('hardware')">
             Instalação
           </button>
-          <button class="tab-button" onclick="showDocsTab('api')">API</button>
+          <button class="tab-button" onclick="showDocsTab('api')">
+            API
+          </button>
         </div>
         <div id="docsContent"></div>
       </div>
@@ -917,7 +918,7 @@
       <div class="modal-content">
         <div class="modal-header">
           <h2 class="modal-title">Funcionalidades</h2>
-          <button class="close-modal" onclick="closeModal('featuresModal')">
+          <button class="modal-close" onclick="closeModal('equipmentModal')">
             &times;
           </button>
         </div>
