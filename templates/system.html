@@ -550,6 +550,87 @@
           grid-template-columns: 1fr;
         }
       }
+
+      /* Estilos adicionais para os novos componentes */
+      .endpoint {
+        background: rgba(0, 0, 0, 0.2);
+        padding: 1rem;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+      }
+
+      .endpoint code {
+        display: block;
+        background: rgba(0, 255, 136, 0.1);
+        padding: 0.5rem;
+        border-radius: 4px;
+        margin-bottom: 0.5rem;
+        font-family: monospace;
+      }
+
+      .api-endpoints {
+        margin-top: 1rem;
+      }
+
+      .maintenance-content {
+        margin-top: 1rem;
+      }
+
+      .badge {
+        display: inline-block;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.875rem;
+        margin-top: 0.5rem;
+      }
+
+      .badge-warning {
+        background-color: var(--accent-pink);
+        color: var(--text-light);
+      }
+
+      .badge-success {
+        background-color: var(--primary-neon);
+        color: var(--bg-dark);
+      }
+
+      .controller-content,
+      .sensor-content,
+      .actuator-content {
+        margin-top: 1rem;
+      }
+
+      .controller-content h4,
+      .sensor-content h4,
+      .actuator-content h4 {
+        color: var(--primary-neon);
+        margin-bottom: 0.5rem;
+        font-family: "Orbitron", sans-serif;
+      }
+
+      .controller-content ul,
+      .sensor-content ul,
+      .actuator-content ul {
+        list-style: none;
+        padding-left: 0;
+      }
+
+      .controller-content li,
+      .sensor-content li,
+      .actuator-content li {
+        padding: 0.5rem 0;
+        border-bottom: 1px solid var(--glass-border);
+      }
+
+      .controller-content li:last-child,
+      .sensor-content li:last-child,
+      .actuator-content li:last-child {
+        border-bottom: none;
+      }
+
+      .card strong {
+        color: var(--primary-neon);
+      }
     </style>
   </head>
   <body>
@@ -729,28 +810,33 @@
     </div>
 
     <!-- Modal de Equipamentos -->
+    <!-- No seu HTML, encontre a seção de Modal de Equipamentos e substitua por: -->
+
+    <!-- Modal de Equipamentos -->
     <div id="equipmentModal" class="modal">
       <div class="modal-content">
         <div class="modal-header">
-          <h2 class="modal-title">Equipamentos</h2>
-          <button class="close-modal" onclick="closeModal('equipmentModal')">
+          <h2 class="modal-title">Equipamentos do Sistema</h2>
+          <button class="modal-close" onclick="closeModal('equipmentModal')">
             &times;
           </button>
         </div>
+
         <div class="tabs">
           <button
             class="tab-button active"
             onclick="showEquipmentTab('controllers')"
           >
-            Controladores
+            <i class="fas fa-microchip"></i> Controladores
           </button>
           <button class="tab-button" onclick="showEquipmentTab('sensors')">
-            Sensores
+            <i class="fas fa-thermometer-half"></i> Sensores
           </button>
           <button class="tab-button" onclick="showEquipmentTab('actuators')">
-            Atuadores
+            <i class="fas fa-cog"></i> Atuadores
           </button>
         </div>
+
         <div id="equipmentContent"></div>
       </div>
     </div>
@@ -818,214 +904,488 @@
     </div>
 
     <script>
+      // Função auxiliar para mostrar erro
+      function showErrorMessage(elementId) {
+        document.getElementById(elementId).innerHTML = `
+        <div class="card error">
+            <h3>Erro ao carregar dados</h3>
+            <p>Por favor, tente novamente mais tarde.</p>
+        </div>`;
+      }
+
+      // Função para mostrar o guia
       async function showGuide() {
         try {
           const response = await fetch("/guide");
           const guide = await response.json();
-          console.log("Guide data:", guide);
           let html = `
-      <div class="cards-grid">
-        ...
-      </div>
-    `;
+            <div class="cards-grid">
+                <div class="card">
+                    <h3 class="card-title"><i class="fas fa-terminal"></i> Comandos Básicos</h3>
+                    <ul>
+                        ${guide.basic.commands
+                          .map((cmd) => `<li>${cmd}</li>`)
+                          .join("")}
+                    </ul>
+                </div>
+                <div class="card">
+                    <h3 class="card-title"><i class="fas fa-desktop"></i> Interface</h3>
+                    <ul>
+                        ${guide.basic.interface
+                          .map((item) => `<li>${item}</li>`)
+                          .join("")}
+                    </ul>
+                </div>
+                <div class="card">
+                    <h3 class="card-title"><i class="fas fa-thermometer-half"></i> Temperaturas</h3>
+                    <ul>
+                        ${Object.entries(guide.settings.temperature)
+                          .map(
+                            ([k, v]) => `<li><strong>${k}:</strong> ${v}</li>`
+                          )
+                          .join("")}
+                    </ul>
+                </div>
+            </div>`;
           document.getElementById("guideContent").innerHTML = html;
-          console.log("Guide content rendered");
           document.getElementById("guideModal").style.display = "block";
         } catch (error) {
           console.error("Erro ao carregar guia:", error);
-          document.getElementById("guideContent").innerHTML = `
-      <div class="card error">
-        <h3>Erro ao carregar o guia</h3>
-        <p>Por favor, tente novamente mais tarde.</p>
-      </div>
-    `;
+          showErrorMessage("guideContent");
         }
       }
 
+      // Função para mostrar receitas
       async function showRecipes() {
         try {
           const response = await fetch("/recipes");
           const recipes = await response.json();
-          console.log("Recipes data:", recipes);
-          const content = document.getElementById("recipesContent");
 
           function renderRecipeTab(category) {
             const recipesInCategory = recipes[category];
             let html = '<div class="cards-grid">';
+
+            for (const [key, recipe] of Object.entries(recipesInCategory)) {
+              html += `
+                    <div class="card">
+                        <h3 class="card-title">${recipe.name}</h3>
+                        <p><strong>Temperatura:</strong> ${
+                          recipe.temperature
+                        }</p>
+                        <div class="recipe-content">
+                            <h4><i class="fas fa-list"></i> Ingredientes</h4>
+                            <ul>
+                                ${recipe.ingredients
+                                  .map((ing) => `<li>${ing}</li>`)
+                                  .join("")}
+                            </ul>
+                            
+                            <h4><i class="fas fa-tasks"></i> Passos</h4>
+                            <ol>
+                                ${recipe.steps
+                                  .map((step) => `<li>${step}</li>`)
+                                  .join("")}
+                            </ol>
+                            
+                            ${
+                              recipe.tips
+                                ? `
+                                <h4><i class="fas fa-lightbulb"></i> Dicas</h4>
+                                <ul>
+                                    ${recipe.tips
+                                      .map((tip) => `<li>${tip}</li>`)
+                                      .join("")}
+                                </ul>
+                            `
+                                : ""
+                            }
+                        </div>
+                    </div>`;
+            }
             html += "</div>";
-            content.innerHTML = html;
-            console.log(`Recipes content for category "${category}" rendered`);
+            document.getElementById("recipesContent").innerHTML = html;
           }
 
-          function showRecipeTab(category) {
+          renderRecipeTab("tradicional");
+          document.getElementById("recipesModal").style.display = "block";
+
+          // Atualiza a função global para troca de tabs
+          window.showRecipeTab = function (category) {
             const tabs = document.querySelectorAll("#recipesTabs .tab-button");
             tabs.forEach((tab) => tab.classList.remove("active"));
             event.target.classList.add("active");
             renderRecipeTab(category);
-          }
-
-          document.getElementById("recipesModal").style.display = "block";
-          renderRecipeTab("tradicional");
-          window.showRecipeTab = showRecipeTab;
+          };
         } catch (error) {
           console.error("Erro ao carregar receitas:", error);
-          document.getElementById("recipesContent").innerHTML = `
-      <div class="card error">
-        <h3>Erro ao carregar as receitas</h3>
-        <p>Por favor, tente novamente mais tarde.</p>
-      </div>
-    `;
+          showErrorMessage("recipesContent");
         }
       }
 
+      // Função para mostrar métodos de preparo
       async function showBrewingMethods() {
         try {
           const response = await fetch("/brewing-methods");
           const methods = await response.json();
-          console.log("Brewing methods data:", methods);
-          let html = `
-      <div class="cards-grid">
-        ...
-      </div>
-    `;
+          let html = '<div class="cards-grid">';
+
+          for (const method of Object.values(methods)) {
+            html += `
+                <div class="card">
+                    <h3 class="card-title"><i class="fas fa-coffee"></i> ${
+                      method.name
+                    }</h3>
+                    <div class="method-content">
+                        ${
+                          method.equipment
+                            ? `
+                            <h4><i class="fas fa-tools"></i> Equipamentos</h4>
+                            <ul>
+                                ${method.equipment
+                                  .map((eq) => `<li>${eq}</li>`)
+                                  .join("")}
+                            </ul>
+                        `
+                            : ""
+                        }
+                        
+                        <div class="method-details">
+                            <p><strong>Moagem:</strong> ${method.grind_size}</p>
+                            <p><strong>Proporção:</strong> ${method.ratio}</p>
+                            <p><strong>Tempo:</strong> ${method.time}</p>
+                        </div>
+                        
+                        <h4><i class="fas fa-list-ol"></i> Passos</h4>
+                        <ol>
+                            ${method.steps
+                              .map((step) => `<li>${step}</li>`)
+                              .join("")}
+                        </ol>
+                    </div>
+                </div>`;
+          }
+          html += "</div>";
+
           document.getElementById("brewingContent").innerHTML = html;
-          console.log("Brewing methods content rendered");
           document.getElementById("brewingModal").style.display = "block";
         } catch (error) {
-          console.error("Erro ao carregar métodos de preparo:", error);
-          document.getElementById("brewingContent").innerHTML = `
-      <div class="card error">
-        <h3>Erro ao carregar os métodos de preparo</h3>
-        <p>Por favor, tente novamente mais tarde.</p>
-      </div>
-    `;
+          console.error("Erro ao carregar métodos:", error);
+          showErrorMessage("brewingContent");
         }
       }
 
-      async function showEquipment() {
-        try {
-          const response = await fetch("/equipment");
-          const equipment = await response.json();
-          console.log("Equipment data:", equipment);
-
-          function renderEquipmentTab(category) {
+      // Função para mostrar equipamentos
+      // Função para mostrar equipamentos
+async function showEquipment() {
+    try {
+        const response = await fetch('/equipment');
+        const equipment = await response.json();
+        
+        function renderEquipmentTab(category) {
             let html = '<div class="cards-grid">';
-            html += "</div>";
-            document.getElementById("equipmentContent").innerHTML = html;
-            console.log(
-              `Equipment content for category "${category}" rendered`
-            );
-          }
+            
+            const items = equipment[category];
+            
+            for (const [key, item] of Object.entries(items)) {
+                html += `
+                    <div class="card">
+                        <h3 class="card-title">
+                            ${getEquipmentIcon(category)} ${item.name}
+                        </h3>
+                        <div class="equipment-details">
+                            ${item.model ? `<p><strong>Modelo:</strong> ${item.model}</p>` : ''}
+                            ${item.type ? `<p><strong>Tipo:</strong> ${item.type}</p>` : ''}
+                            ${item.range ? `<p><strong>Faixa:</strong> ${item.range}</p>` : ''}
+                            ${item.precision ? `<p><strong>Precisão:</strong> ${item.precision}</p>` : ''}
+                            
+                            <div class="specs-section">
+                                <h4>Especificações</h4>
+                                <ul>
+                                    ${item.specs.map(spec => `<li>${spec}</li>`).join('')}
+                                </ul>
+                            </div>
 
-          function showEquipmentTab(category) {
-            const tabs = document.querySelectorAll(".tabs .tab-button");
-            tabs.forEach((tab) => tab.classList.remove("active"));
-            event.target.classList.add("active");
-            renderEquipmentTab(category);
-          }
-
-          document.getElementById("equipmentModal").style.display = "block";
-          renderEquipmentTab("controllers");
-          window.showEquipmentTab = showEquipmentTab;
-        } catch (error) {
-          console.error("Erro ao carregar equipamentos:", error);
-          document.getElementById("equipmentContent").innerHTML = `
-      <div class="card error">
-        <h3>Erro ao carregar os equipamentos</h3>
-        <p>Por favor, tente novamente mais tarde.</p>
-      </div>
-    `;
+                            ${item.pins ? `
+                                <div class="pins-section">
+                                    <h4>Conexões</h4>
+                                    <ul>
+                                        ${Object.entries(item.pins).map(([pin, use]) => 
+                                            `<li><strong>${pin}:</strong> ${use}</li>`).join('')}
+                                    </ul>
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+            }
+            
+            html += '</div>';
+            document.getElementById('equipmentContent').innerHTML = html;
         }
-      }
 
+        // Renderiza a primeira tab
+        renderEquipmentTab('controllers');
+        
+        // Atualiza a função de troca de tabs
+        window.showEquipmentTab = function(category) {
+            const tabs = document.querySelectorAll('#equipmentModal .tab-button');
+            tabs.forEach(tab => tab.classList.remove('active'));
+            event.target.classList.add('active');
+            renderEquipmentTab(category);
+        };
+
+    } catch (error) {
+        console.error('Erro ao carregar equipamentos:', error);
+        document.getElementById('equipmentContent').innerHTML = `
+            <div class="error-message">
+                <i class="fas fa-exclamation-triangle"></i>
+                <p>Erro ao carregar equipamentos. Tente novamente mais tarde.</p>
+            </div>
+        `;
+    }
+}
+
+// Função auxiliar para ícones
+function getEquipmentIcon(category) {
+    const icons = {
+        controllers: '<i class="fas fa-microchip"></i>',
+        sensors: '<i class="fas fa-thermometer-half"></i>',
+        actuators: '<i class="fas fa-cog"></i>'
+    };
+    return icons[category] || '<i class="fas fa-cog"></i>';
+}
+
+      // Função para mostrar a manutenção
       async function showMaintenance() {
         try {
           const response = await fetch("/maintenance-guide");
           const guide = await response.json();
-          console.log("Maintenance guide data:", guide);
 
           function renderMaintenanceTab(period) {
             let html = '<div class="cards-grid">';
+
+            guide[period].forEach((item) => {
+              html += `
+                    <div class="card">
+                        <h3 class="card-title">
+                            <i class="fas fa-tools"></i> ${item.title}
+                        </h3>
+                        <div class="badge ${
+                          item.priority.toLowerCase() === "alta"
+                            ? "badge-warning"
+                            : "badge-success"
+                        }">
+                            Prioridade: ${item.priority}
+                        </div>
+                        <div class="maintenance-content">
+                            <h4><i class="fas fa-tasks"></i> Tarefas</h4>
+                            <ul>
+                                ${item.tasks
+                                  .map((task) => `<li>${task}</li>`)
+                                  .join("")}
+                            </ul>
+                        </div>
+                    </div>`;
+            });
+
             html += "</div>";
             document.getElementById("maintenanceContent").innerHTML = html;
-            console.log(`Maintenance content for period "${period}" rendered`);
           }
 
-          function showMaintenanceTab(period) {
+          renderMaintenanceTab("daily");
+          document.getElementById("maintenanceModal").style.display = "block";
+
+          // Atualiza função de troca de tabs
+          window.showMaintenanceTab = function (period) {
             const tabs = document.querySelectorAll(".tabs .tab-button");
             tabs.forEach((tab) => tab.classList.remove("active"));
             event.target.classList.add("active");
             renderMaintenanceTab(period);
-          }
-
-          document.getElementById("maintenanceModal").style.display = "block";
-          renderMaintenanceTab("daily");
-          window.showMaintenanceTab = showMaintenanceTab;
+          };
         } catch (error) {
-          console.error("Erro ao carregar guia de manutenção:", error);
-          document.getElementById("maintenanceContent").innerHTML = `
-      <div class="card error">
-        <h3>Erro ao carregar o guia de manutenção</h3>
-        <p>Por favor, tente novamente mais tarde.</p>
-      </div>
-    `;
+          console.error("Erro ao carregar manutenção:", error);
+          showErrorMessage("maintenanceContent");
         }
       }
 
+      // Função para mostrar documentação
       async function showDocs() {
         try {
           const response = await fetch("/docs");
           const docs = await response.json();
-          console.log("Docs data:", docs);
 
           function renderDocsTab(section) {
-            let html = "";
+            let html = '<div class="cards-grid">';
+
+            const sectionData = docs[section];
+            switch (section) {
+              case "system":
+                html += `
+                        <div class="card">
+                            <h3 class="card-title">
+                                <i class="fas fa-cogs"></i> ${sectionData.title}
+                            </h3>
+                            <p>${sectionData.description}</p>
+                            <p><strong>Versão:</strong> ${
+                              sectionData.version
+                            }</p>
+                            <h4>Arquitetura</h4>
+                            <ul>
+                                ${sectionData.architecture
+                                  .map((item) => `<li>${item}</li>`)
+                                  .join("")}
+                            </ul>
+                        </div>`;
+                break;
+
+              case "api":
+                html += `
+                        <div class="card">
+                            <h3 class="card-title">
+                                <i class="fas fa-code"></i> ${sectionData.title}
+                            </h3>
+                            <div class="api-endpoints">
+                                ${sectionData.endpoints
+                                  .map(
+                                    (endpoint) => `
+                                    <div class="endpoint">
+                                        <code>${endpoint.method} ${endpoint.path}</code>
+                                        <p>${endpoint.description}</p>
+                                    </div>
+                                `
+                                  )
+                                  .join("")}
+                            </div>
+                        </div>`;
+                break;
+
+              case "hardware":
+                html += `
+                        <div class="card">
+                            <h3 class="card-title">
+                                <i class="fas fa-microchip"></i> ${
+                                  sectionData.title
+                                }
+                            </h3>
+                            <ul>
+                                ${sectionData.components
+                                  .map((comp) => `<li>${comp}</li>`)
+                                  .join("")}
+                            </ul>
+                        </div>`;
+                break;
+            }
+
+            html += "</div>";
             document.getElementById("docsContent").innerHTML = html;
-            console.log(`Docs content for section "${section}" rendered`);
           }
 
-          function showDocsTab(section) {
+          renderDocsTab("system");
+          document.getElementById("docsModal").style.display = "block";
+
+          // Atualiza função de troca de tabs
+          window.showDocsTab = function (section) {
             const tabs = document.querySelectorAll(".tabs .tab-button");
             tabs.forEach((tab) => tab.classList.remove("active"));
             event.target.classList.add("active");
             renderDocsTab(section);
-          }
-
-          document.getElementById("docsModal").style.display = "block";
-          renderDocsTab("overview");
-          window.showDocsTab = showDocsTab;
+          };
         } catch (error) {
           console.error("Erro ao carregar documentação:", error);
-          document.getElementById("docsContent").innerHTML = `
-      <div class="card error">
-        <h3>Erro ao carregar a documentação</h3>
-        <p>Por favor, tente novamente mais tarde.</p>
-      </div>
-    `;
+          showErrorMessage("docsContent");
         }
       }
 
+      // Função para mostrar funcionalidades
       async function showFeatures() {
         try {
           const response = await fetch("/features");
           const features = await response.json();
-          console.log("Features data:", features);
-          let html = `
-      <div class="cards-grid">
-        ...
-      </div>
-    `;
+
+          let html = '<div class="cards-grid">';
+
+          for (const [key, section] of Object.entries(features)) {
+            html += `
+                <div class="card">
+                    <h3 class="card-title">
+                        <i class="fas fa-${getFeatureIcon(key)}"></i> ${
+              section.title
+            }
+                    </h3>
+                    <ul>
+                        ${section.features
+                          .map((feature) => `<li>${feature}</li>`)
+                          .join("")}
+                    </ul>
+                </div>`;
+          }
+
+          html += "</div>";
           document.getElementById("featuresContent").innerHTML = html;
-          console.log("Features content rendered");
           document.getElementById("featuresModal").style.display = "block";
         } catch (error) {
           console.error("Erro ao carregar funcionalidades:", error);
-          document.getElementById("featuresContent").innerHTML = `
-      <div class="card error">
-        <h3>Erro ao carregar as funcionalidades</h3>
-        <p>Por favor, tente novamente mais tarde.</p>
-      </div>
-    `;
+          showErrorMessage("featuresContent");
+        }
+      }
+
+      // Função auxiliar para ícones de funcionalidades
+      function getFeatureIcon(key) {
+        const icons = {
+          control: "sliders-h",
+          monitoring: "chart-line",
+          ai: "brain",
+          security: "shield-alt",
+        };
+        return icons[key] || "star";
+      }
+
+      // Atualizar a função showEquipment para incluir atuadores
+      async function showEquipment() {
+        try {
+          const response = await fetch("/equipment");
+          const equipment = await response.json();
+
+          function renderEquipmentTab(category) {
+            let html = '<div class="cards-grid">';
+
+            if (category === "actuators") {
+              Object.values(equipment.actuators).forEach((actuator) => {
+                html += `
+                        <div class="card">
+                            <h3 class="card-title">
+                                <i class="fas fa-cog"></i> ${actuator.name}
+                            </h3>
+                            <p><strong>Modelo:</strong> ${actuator.model}</p>
+                            <h4>Especificações</h4>
+                            <ul>
+                                ${actuator.specs
+                                  .map((spec) => `<li>${spec}</li>`)
+                                  .join("")}
+                            </ul>
+                        </div>`;
+              });
+            } else {
+              // Seu código existente para controllers e sensors
+            }
+
+            html += "</div>";
+            document.getElementById("equipmentContent").innerHTML = html;
+          }
+
+          renderEquipmentTab("controllers");
+          document.getElementById("equipmentModal").style.display = "block";
+
+          // Atualiza função de troca de tabs
+          window.showEquipmentTab = function (category) {
+            const tabs = document.querySelectorAll(".tabs .tab-button");
+            tabs.forEach((tab) => tab.classList.remove("active"));
+            event.target.classList.add("active");
+            renderEquipmentTab(category);
+          };
+        } catch (error) {
+          console.error("Erro ao carregar equipamentos:", error);
+          showErrorMessage("equipmentContent");
         }
       }
     </script>

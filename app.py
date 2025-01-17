@@ -288,6 +288,429 @@ def chat(current_user):
         print(f"Erro no processamento: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
+# Rotas para os modais
+@app.route('/guide')
+def get_guide():
+    return jsonify({
+        "basic": {
+            "commands": [
+                "Ligar cafeteira - Ativa o sistema",
+                "Desligar cafeteira - Desativa o sistema",
+                "Status - Verifica o estado atual",
+                "Temperatura - Mostra a temperatura atual",
+                "Fazer café - Inicia o preparo do café",
+                "Ajuda - Mostra comandos disponíveis"
+            ],
+            "interface": [
+                "Painel de controle intuitivo",
+                "Chat interativo para comandos",
+                "Monitoramento em tempo real",
+                "Indicadores de status visual",
+                "Acesso a receitas e configurações"
+            ]
+        },
+        "settings": {
+            "temperature": {
+                "espresso": "92-96°C",
+                "cappuccino": "85-90°C",
+                "americano": "85-87°C",
+                "água quente": "85°C"
+            }
+        }
+    })
+
+@app.route('/recipes')
+def get_recipes():
+    return jsonify({
+        "tradicional": {
+            "espresso": {
+                "name": "Espresso Tradicional",
+                "temperature": "92-96°C",
+                "ingredients": [
+                    "18-21g café moído fino",
+                    "Água filtrada",
+                    "Pressão 9 bar"
+                ],
+                "steps": [
+                    "Pré-aqueça o porta-filtro",
+                    "Dose 18-21g de café",
+                    "Distribua uniformemente",
+                    "Tampe com 15-20kg de pressão",
+                    "Extraia por 25-30 segundos"
+                ],
+                "tips": [
+                    "Use café recém-moído",
+                    "Observe a crema dourada",
+                    "Mantenha temperatura estável"
+                ]
+            },
+            "cappuccino": {
+                "name": "Cappuccino Clássico",
+                "temperature": "85-90°C",
+                "ingredients": [
+                    "1 shot de espresso",
+                    "120ml de leite",
+                    "Canela (opcional)"
+                ],
+                "steps": [
+                    "Prepare o espresso",
+                    "Espume o leite a 65°C",
+                    "Combine em proporções iguais",
+                    "Finalize com canela"
+                ],
+                "tips": [
+                    "Use leite gelado",
+                    "Espume até textura aveludada",
+                    "Sirva imediatamente"
+                ]
+            }
+        },
+        "especiais": {
+            "latte": {
+                "name": "Café Latte",
+                "temperature": "85-90°C",
+                "ingredients": [
+                    "1 shot de espresso",
+                    "180ml de leite",
+                    "Arte latte opcional"
+                ],
+                "steps": [
+                    "Extraia o espresso",
+                    "Espume o leite",
+                    "Combine delicadamente",
+                    "Faça arte latte"
+                ],
+                "tips": [
+                    "Mantenha o leite cremoso",
+                    "Use movimentos suaves",
+                    "Pratique a arte latte"
+                ]
+            }
+        },
+        "gelados": {
+            "frappuccino": {
+                "name": "Frappuccino Clássico",
+                "temperature": "Gelado",
+                "ingredients": [
+                    "1 shot de espresso",
+                    "150ml de leite",
+                    "Gelo",
+                    "30ml de xarope",
+                    "Chantilly"
+                ],
+                "steps": [
+                    "Prepare o espresso",
+                    "Adicione gelo no copo",
+                    "Misture o café com leite e xarope",
+                    "Bata todos os ingredientes",
+                    "Finalize com chantilly"
+                ],
+                "tips": [
+                    "Use gelo em cubos",
+                    "Ajuste a doçura do xarope",
+                    "Sirva imediatamente"
+                ]
+            },
+            "cold_brew": {
+                "name": "Cold Brew",
+                "temperature": "Ambiente",
+                "ingredients": [
+                    "100g café moído grosso",
+                    "1L água filtrada",
+                    "Gelo"
+                ],
+                "steps": [
+                    "Misture café e água",
+                    "Deixe extrair por 12h",
+                    "Filtre a mistura",
+                    "Sirva com gelo"
+                ],
+                "tips": [
+                    "Use café de torra média",
+                    "Mantenha na geladeira",
+                    "Dura até 2 semanas"
+                ]
+            }
+        }
+    })
+
+@app.route('/brewing-methods')
+def get_brewing_methods():
+    return jsonify({
+        "espresso": {
+            "name": "Método Espresso",
+            "equipment": [
+                "Máquina de espresso",
+                "Moedor de café",
+                "Tamper",
+                "Balança"
+            ],
+            "grind_size": "Fina (como sal refinado)",
+            "ratio": "1:2 (café:água)",
+            "time": "25-30 segundos",
+            "steps": [
+                "Moer 18-21g de café",
+                "Distribuir uniformemente",
+                "Tampar com pressão adequada",
+                "Extrair observando fluxo"
+            ]
+        },
+        "pour_over": {
+            "name": "Pour Over",
+            "equipment": [
+                "Hario V60",
+                "Filtro de papel",
+                "Chaleira com gooseneck",
+                "Balança"
+            ],
+            "grind_size": "Média-fina",
+            "ratio": "1:15",
+            "time": "2-3 minutos",
+            "steps": [
+                "Pré-molhar o filtro",
+                "Adicionar café moído",
+                "Fazer bloom",
+                "Derramar em espiral"
+            ]
+        }
+    })
+
+@app.route('/equipment')
+def get_equipment():
+    return jsonify({
+        "controllers": {
+            "main": {
+                "name": "Controlador Principal",
+                "model": "ESP32",
+                "specs": [
+                    "Processador dual-core",
+                    "WiFi integrado",
+                    "Bluetooth 4.0",
+                    "40 pinos GPIO"
+                ],
+                "pins": {
+                    "GPIO1": "Sensor de Temperatura",
+                    "GPIO2": "Sensor de Pressão",
+                    "GPIO3": "Controle da Bomba",
+                    "GPIO4": "LED de Status"
+                }
+            },
+            "display": {
+                "name": "Controlador de Display",
+                "model": "SSD1306",
+                "specs": [
+                    "Display OLED 128x64",
+                    "Interface I2C",
+                    "Baixo consumo",
+                    "Alto contraste"
+                ]
+            }
+        },
+        "sensors": {
+            "temperature": {
+                "name": "Sensor de Temperatura",
+                "model": "DS18B20",
+                "type": "Digital",
+                "range": "-55°C a 125°C",
+                "precision": "±0.5°C",
+                "specs": [
+                    "À prova d'água",
+                    "Interface OneWire",
+                    "Resposta rápida"
+                ]
+            },
+            "pressure": {
+                "name": "Sensor de Pressão",
+                "model": "BMP280",
+                "type": "Digital",
+                "range": "300-1100hPa",
+                "precision": "±0.12hPa",
+                "specs": [
+                    "Interface I2C",
+                    "Alta precisão",
+                    "Compensação de temperatura"
+                ]
+            },
+            "water": {
+                "name": "Sensor de Nível de Água",
+                "model": "HC-SR04",
+                "type": "Ultrassônico",
+                "range": "2-400cm",
+                "precision": "±0.3cm",
+                "specs": [
+                    "Não invasivo",
+                    "Resposta rápida",
+                    "Impermeável"
+                ]
+            }
+        },
+        "actuators": {
+            "pump": {
+                "name": "Bomba de Água",
+                "model": "Ulka EP5",
+                "specs": [
+                    "48W de potência",
+                    "15 bar de pressão",
+                    "Vibratória",
+                    "230V AC"
+                ]
+            },
+            "heater": {
+                "name": "Sistema de Aquecimento",
+                "model": "Thermoblock",
+                "specs": [
+                    "1350W de potência",
+                    "Controle PID",
+                    "Aquecimento rápido",
+                    "Proteção térmica"
+                ]
+            },
+            "valve": {
+                "name": "Válvula Solenoide",
+                "model": "Parker 2-Way",
+                "specs": [
+                    "24V DC",
+                    "Normalmente fechada",
+                    "Resposta rápida",
+                    "Alta durabilidade"
+                ]
+            }
+        }
+    })
+
+@app.route('/maintenance-guide')
+def get_maintenance():
+    return jsonify({
+        "daily": [
+            {
+                "title": "Limpeza Básica",
+                "priority": "Alta",
+                "tasks": [
+                    "Limpar porta-filtro",
+                    "Esvaziar bandeja de resíduos",
+                    "Limpar vaporizador",
+                    "Verificar nível de água"
+                ]
+            },
+            {
+                "title": "Verificações",
+                "priority": "Média",
+                "tasks": [
+                    "Checar pressão",
+                    "Verificar temperatura",
+                    "Inspecionar vedações"
+                ]
+            }
+        ],
+        "weekly": [
+            {
+                "title": "Limpeza Profunda",
+                "priority": "Alta",
+                "tasks": [
+                    "Backflush com detergente",
+                    "Limpeza do grupo",
+                    "Descarga do sistema",
+                    "Limpeza de filtros"
+                ]
+            }
+        ],
+        "monthly": [
+            {
+                "title": "Manutenção Preventiva",
+                "priority": "Alta",
+                "tasks": [
+                    "Descalcificação completa",
+                    "Troca de filtros",
+                    "Verificação de componentes",
+                    "Calibração de sensores"
+                ]
+            }
+        ]
+    })
+
+@app.route('/docs')
+def get_docs():
+    return jsonify({
+        "system": {
+            "title": "Sistema CoffeeAI",
+            "description": "Sistema IoT para controle inteligente de cafeteira",
+            "version": "1.0.0",
+            "architecture": [
+                "Frontend Web (React/Flask)",
+                "Backend Python",
+                "MQTT Broker",
+                "Controlador ESP8266",
+                "Sensores IoT"
+            ]
+        },
+        "api": {
+            "title": "API Documentation",
+            "endpoints": [
+                {
+                    "path": "/status",
+                    "method": "GET",
+                    "description": "Retorna status atual do sistema"
+                },
+                {
+                    "path": "/control",
+                    "method": "POST",
+                    "description": "Envia comandos para a cafeteira"
+                }
+            ]
+        },
+        "hardware": {
+            "title": "Hardware Specs",
+            "components": [
+                "ESP8266 NodeMCU",
+                "Sensores de Temperatura",
+                "Sensores de Pressão",
+                "Módulos Relé",
+                "Display OLED"
+            ]
+        }
+    })
+
+@app.route('/features')
+def get_features():
+    return jsonify({
+        "control": {
+            "title": "Controle Inteligente",
+            "features": [
+                "Controle remoto via web",
+                "Ajuste preciso de temperatura",
+                "Programação de horários",
+                "Modos personalizados"
+            ]
+        },
+        "monitoring": {
+            "title": "Monitoramento",
+            "features": [
+                "Status em tempo real",
+                "Histórico de uso",
+                "Alertas automáticos",
+                "Gráficos de consumo"
+            ]
+        },
+        "ai": {
+            "title": "Inteligência Artificial",
+            "features": [
+                "Chatbot assistente",
+                "Recomendações personalizadas",
+                "Otimização automática",
+                "Aprendizado de preferências"
+            ]
+        },
+        "security": {
+            "title": "Segurança",
+            "features": [
+                "Autenticação segura",
+                "Criptografia de dados",
+                "Proteção contra falhas",
+                "Backup automático"
+            ]
+        }
+    })
+
 if __name__ == '__main__':
     init_db()
     
