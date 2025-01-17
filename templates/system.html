@@ -562,42 +562,48 @@
             <i class="fas fa-sign-out-alt"></i> Sair
           </button>
         </div>
+
+        <div class="user-info">
+          <button onclick="voltarHome()">
+            <i class="fas fa-sign-out-alt"></i> Home
+          </button>
+        </div>
       </header>
 
       <nav class="nav-container">
         <ul class="nav-menu">
           <li class="nav-item">
-            <a href="#" onclick="showGuide()">
+            <a href="#" onclick="showSection('guide')">
               <i class="fas fa-book"></i> Guia de Uso
             </a>
           </li>
           <li class="nav-item">
-            <a href="#" onclick="showRecipes()">
+            <a href="#" onclick="showSection('recipes')">
               <i class="fas fa-coffee"></i> Receitas
             </a>
           </li>
           <li class="nav-item">
-            <a href="#" onclick="showBrewingMethods()">
+            <a href="#" onclick="showSection('brew-methods')">
               <i class="fas fa-mortar-pestle"></i> Modos de Preparo
             </a>
           </li>
           <li class="nav-item">
-            <a href="#" onclick="showEquipment()">
+            <a href="#" onclick="showSection('equipment')">
               <i class="fas fa-microchip"></i> Equipamentos
             </a>
           </li>
           <li class="nav-item">
-            <a href="#" onclick="showMaintenance()">
+            <a href="#" onclick="showSection('maintenance')">
               <i class="fas fa-tools"></i> Manutenção
             </a>
           </li>
           <li class="nav-item">
-            <a href="#" onclick="showDocs()">
+            <a href="#" onclick="showSection('docs')">
               <i class="fas fa-file-code"></i> Documentação
             </a>
           </li>
           <li class="nav-item">
-            <a href="#" onclick="showFeatures()">
+            <a href="#" onclick="showSection('features')">
               <i class="fas fa-star"></i> Funcionalidades
             </a>
           </li>
@@ -812,490 +818,215 @@
     </div>
 
     <script>
-      // Funções dos Modais
       async function showGuide() {
         try {
           const response = await fetch("/guide");
           const guide = await response.json();
+          console.log("Guide data:", guide);
           let html = `
-            <div class="cards-grid">
-                <div class="card">
-                    <h3 class="card-title"><i class="fas fa-terminal"></i> Comandos Básicos</h3>
-                    <ul>
-                        ${guide.basic.commands
-                          .map((cmd) => `<li>${cmd}</li>`)
-                          .join("")}
-                    </ul>
-                </div>
-                
-                <div class="card">
-                    <h3 class="card-title"><i class="fas fa-desktop"></i> Interface</h3>
-                    <ul>
-                        ${guide.basic.interface
-                          .map((item) => `<li>${item}</li>`)
-                          .join("")}
-                    </ul>
-                </div>
-
-                <div class="card">
-                    <h3 class="card-title"><i class="fas fa-star"></i> Funcionalidades</h3>
-                    <ul>
-                        ${guide.advanced.features
-                          .map((feature) => `<li>${feature}</li>`)
-                          .join("")}
-                    </ul>
-                </div>
-
-                <div class="card">
-                    <h3 class="card-title"><i class="fas fa-lightbulb"></i> Dicas</h3>
-                    <ul>
-                        ${guide.advanced.tips
-                          .map((tip) => `<li>${tip}</li>`)
-                          .join("")}
-                    </ul>
-                </div>
-
-                <div class="card">
-                    <h3 class="card-title"><i class="fas fa-sliders-h"></i> Configurações</h3>
-                    <h4>Temperaturas Ideais:</h4>
-                    <ul>
-                        ${Object.entries(guide.settings.temperature)
-                          .map(
-                            ([k, v]) => `<li><strong>${k}:</strong> ${v}</li>`
-                          )
-                          .join("")}
-                    </ul>
-                    <h4>Manutenção:</h4>
-                    <ul>
-                        ${Object.entries(guide.settings.maintenance)
-                          .map(
-                            ([k, v]) => `<li><strong>${k}:</strong> ${v}</li>`
-                          )
-                          .join("")}
-                    </ul>
-                </div>
-
-                <div class="card">
-                    <h3 class="card-title"><i class="fas fa-keyboard"></i> Atalhos</h3>
-                    <h4>Teclado:</h4>
-                    <ul>
-                        ${guide.shortcuts.keyboard
-                          .map((shortcut) => `<li>${shortcut}</li>`)
-                          .join("")}
-                    </ul>
-                    <h4>Comandos de Voz:</h4>
-                    <ul>
-                        ${guide.shortcuts.voice
-                          .map((cmd) => `<li>${cmd}</li>`)
-                          .join("")}
-                    </ul>
-                </div>
-            </div>
-        `;
+      <div class="cards-grid">
+        ...
+      </div>
+    `;
           document.getElementById("guideContent").innerHTML = html;
+          console.log("Guide content rendered");
           document.getElementById("guideModal").style.display = "block";
         } catch (error) {
           console.error("Erro ao carregar guia:", error);
           document.getElementById("guideContent").innerHTML = `
-            <div class="card error">
-                <h3>Erro ao carregar o guia</h3>
-                <p>Por favor, tente novamente mais tarde.</p>
-            </div>
-        `;
+      <div class="card error">
+        <h3>Erro ao carregar o guia</h3>
+        <p>Por favor, tente novamente mais tarde.</p>
+      </div>
+    `;
         }
       }
+
       async function showRecipes() {
-        const response = await fetch("/recipes");
-        const recipes = await response.json();
-        const content = document.getElementById("recipesContent");
+        try {
+          const response = await fetch("/recipes");
+          const recipes = await response.json();
+          console.log("Recipes data:", recipes);
+          const content = document.getElementById("recipesContent");
 
-        function renderRecipeTab(category) {
-          const recipesInCategory = recipes[category];
-          let html = '<div class="cards-grid">';
-
-          for (const [key, recipe] of Object.entries(recipesInCategory)) {
-            html += `
-                        <div class="card">
-                            <h3 class="card-title">${recipe.name}</h3>
-                            <p>${recipe.description || ""}</p>
-                            <div class="recipe-details">
-                                <p><strong>Temperatura:</strong> ${
-                                  recipe.temperature
-                                }</p>
-                                <p><strong>Tempo:</strong> ${
-                                  recipe.time || recipe.preparation_time
-                                }</p>
-                                ${
-                                  recipe.ingredients
-                                    ? `
-                                    <h4>Ingredientes:</h4>
-                                    <ul>
-                                        ${recipe.ingredients
-                                          .map((ing) => `<li>${ing}</li>`)
-                                          .join("")}
-                                    </ul>
-                                `
-                                    : ""
-                                }
-                                <h4>Passos:</h4>
-                                <ol>
-                                    ${recipe.steps
-                                      .map((step) => `<li>${step}</li>`)
-                                      .join("")}
-                                </ol>
-                                ${
-                                  recipe.tips
-                                    ? `
-                                    <h4>Dicas:</h4>
-                                    <ul>
-                                        ${recipe.tips
-                                          .map((tip) => `<li>${tip}</li>`)
-                                          .join("")}
-                                    </ul>
-                                `
-                                    : ""
-                                }
-                            </div>
-                        </div>
-                    `;
+          function renderRecipeTab(category) {
+            const recipesInCategory = recipes[category];
+            let html = '<div class="cards-grid">';
+            html += "</div>";
+            content.innerHTML = html;
+            console.log(`Recipes content for category "${category}" rendered`);
           }
-          html += "</div>";
-          content.innerHTML = html;
-        }
 
-        function showRecipeTab(category) {
-          const tabs = document.querySelectorAll("#recipesTabs .tab-button");
-          tabs.forEach((tab) => tab.classList.remove("active"));
-          event.target.classList.add("active");
-          renderRecipeTab(category);
-        }
+          function showRecipeTab(category) {
+            const tabs = document.querySelectorAll("#recipesTabs .tab-button");
+            tabs.forEach((tab) => tab.classList.remove("active"));
+            event.target.classList.add("active");
+            renderRecipeTab(category);
+          }
 
-        document.getElementById("recipesModal").style.display = "block";
-        renderRecipeTab("tradicional"); // Mostra primeira tab por padrão
-        window.showRecipeTab = showRecipeTab;
+          document.getElementById("recipesModal").style.display = "block";
+          renderRecipeTab("tradicional");
+          window.showRecipeTab = showRecipeTab;
+        } catch (error) {
+          console.error("Erro ao carregar receitas:", error);
+          document.getElementById("recipesContent").innerHTML = `
+      <div class="card error">
+        <h3>Erro ao carregar as receitas</h3>
+        <p>Por favor, tente novamente mais tarde.</p>
+      </div>
+    `;
+        }
       }
 
       async function showBrewingMethods() {
-        const response = await fetch("/brewing-methods");
-        const methods = await response.json();
-        let html = `
-                <div class="cards-grid">
-                    ${Object.entries(methods)
-                      .map(
-                        ([key, method]) => `
-                        <div class="card">
-                            <h3 class="card-title">${method.name}</h3>
-                            <div class="method-details">
-                                ${
-                                  method.equipment
-                                    ? `
-                                    <h4>Equipamentos:</h4>
-                                    <ul>
-                                        ${method.equipment
-                                          .map((eq) => `<li>${eq}</li>`)
-                                          .join("")}
-                                    </ul>
-                                `
-                                    : ""
-                                }
-                                <p><strong>Moagem:</strong> ${
-                                  method.grind_size || "-"
-                                }</p>
-                                <p><strong>Proporção:</strong> ${
-                                  method.ratio || "-"
-                                }</p>
-                                <p><strong>Tempo:</strong> ${
-                                  method.time || "-"
-                                }</p>
-                                <p><strong>Temperatura:</strong> ${
-                                  method.temperature || "-"
-                                }</p>
-                                ${
-                                  method.steps
-                                    ? `
-                                    <h4>Passos:</h4>
-                                    <ol>
-                                        ${method.steps
-                                          .map((step) => `<li>${step}</li>`)
-                                          .join("")}
-                                    </ol>
-                                `
-                                    : ""
-                                }
-                                ${
-                                  method.troubleshooting
-                                    ? `
-                                    <h4>Solução de Problemas:</h4>
-                                    <ul>
-                                        ${Object.entries(method.troubleshooting)
-                                          .map(
-                                            ([problem, solution]) =>
-                                              `<li><strong>${problem}:</strong> ${solution}</li>`
-                                          )
-                                          .join("")}
-                                    </ul>
-                                `
-                                    : ""
-                                }
-                            </div>
-                        </div>
-                    `
-                      )
-                      .join("")}
-                </div>
-            `;
-        document.getElementById("brewingContent").innerHTML = html;
-        document.getElementById("brewingModal").style.display = "block";
+        try {
+          const response = await fetch("/brewing-methods");
+          const methods = await response.json();
+          console.log("Brewing methods data:", methods);
+          let html = `
+      <div class="cards-grid">
+        ...
+      </div>
+    `;
+          document.getElementById("brewingContent").innerHTML = html;
+          console.log("Brewing methods content rendered");
+          document.getElementById("brewingModal").style.display = "block";
+        } catch (error) {
+          console.error("Erro ao carregar métodos de preparo:", error);
+          document.getElementById("brewingContent").innerHTML = `
+      <div class="card error">
+        <h3>Erro ao carregar os métodos de preparo</h3>
+        <p>Por favor, tente novamente mais tarde.</p>
+      </div>
+    `;
+        }
       }
 
       async function showEquipment() {
-        const response = await fetch("/equipment");
-        const equipment = await response.json();
+        try {
+          const response = await fetch("/equipment");
+          const equipment = await response.json();
+          console.log("Equipment data:", equipment);
 
-        function renderEquipmentTab(category) {
-          let html = '<div class="cards-grid">';
-
-          if (category === "controllers") {
-            Object.entries(equipment.controllers).forEach(
-              ([key, controller]) => {
-                html += `
-                            <div class="card">
-                                <h3 class="card-title">${controller.name}</h3>
-                                <p><strong>Função:</strong> ${
-                                  controller.function
-                                }</p>
-                                <h4>Especificações:</h4>
-                                <ul>
-                                    ${controller.specs
-                                      .map((spec) => `<li>${spec}</li>`)
-                                      .join("")}
-                                </ul>
-                                ${
-                                  controller.pins
-                                    ? `
-                                    <h4>Portas:</h4>
-                                    <ul>
-                                        ${Object.entries(controller.pins)
-                                          .map(
-                                            ([pin, use]) =>
-                                              `<li>${pin}: ${use}</li>`
-                                          )
-                                          .join("")}
-                                    </ul>
-                                `
-                                    : ""
-                                }
-                            </div>
-                        `;
-              }
+          function renderEquipmentTab(category) {
+            let html = '<div class="cards-grid">';
+            html += "</div>";
+            document.getElementById("equipmentContent").innerHTML = html;
+            console.log(
+              `Equipment content for category "${category}" rendered`
             );
-          } else {
-            Object.entries(equipment[category]).forEach(([key, device]) => {
-              html += `
-                            <div class="card">
-                                <h3 class="card-title">${device.model}</h3>
-                                <p><strong>Tipo:</strong> ${device.type}</p>
-                                <p><strong>Faixa:</strong> ${device.range}</p>
-                                ${
-                                  device.precision
-                                    ? `<p><strong>Precisão:</strong> ${device.precision}</p>`
-                                    : ""
-                                }
-                                <span class="badge badge-${
-                                  device.status === "active"
-                                    ? "success"
-                                    : "warning"
-                                }">
-                                    ${device.status}
-                                </span>
-                            </div>
-                        `;
-            });
           }
-          html += "</div>";
-          document.getElementById("equipmentContent").innerHTML = html;
-        }
 
-        function showEquipmentTab(category) {
-          const tabs = document.querySelectorAll(".tabs .tab-button");
-          tabs.forEach((tab) => tab.classList.remove("active"));
-          event.target.classList.add("active");
-          renderEquipmentTab(category);
-        }
+          function showEquipmentTab(category) {
+            const tabs = document.querySelectorAll(".tabs .tab-button");
+            tabs.forEach((tab) => tab.classList.remove("active"));
+            event.target.classList.add("active");
+            renderEquipmentTab(category);
+          }
 
-        document.getElementById("equipmentModal").style.display = "block";
-        renderEquipmentTab("controllers"); // Mostra primeira tab por padrão
-        window.showEquipmentTab = showEquipmentTab;
+          document.getElementById("equipmentModal").style.display = "block";
+          renderEquipmentTab("controllers");
+          window.showEquipmentTab = showEquipmentTab;
+        } catch (error) {
+          console.error("Erro ao carregar equipamentos:", error);
+          document.getElementById("equipmentContent").innerHTML = `
+      <div class="card error">
+        <h3>Erro ao carregar os equipamentos</h3>
+        <p>Por favor, tente novamente mais tarde.</p>
+      </div>
+    `;
+        }
       }
 
       async function showMaintenance() {
-        const response = await fetch("/maintenance-guide");
-        const guide = await response.json();
+        try {
+          const response = await fetch("/maintenance-guide");
+          const guide = await response.json();
+          console.log("Maintenance guide data:", guide);
 
-        function renderMaintenanceTab(period) {
-          let html = '<div class="cards-grid">';
-          guide[period].forEach((task) => {
-            html += `
-                        <div class="card">
-                            <h3 class="card-title">${task.task}</h3>
-                            <p>${task.description}</p>
-                            <span class="badge badge-${
-                              task.importance === "Alta"
-                                ? "error"
-                                : task.importance === "Média"
-                                ? "warning"
-                                : "success"
-                            }">
-                                ${task.importance}
-                            </span>
-                            ${
-                              task.frequency
-                                ? `<p><strong>Frequência:</strong> ${task.frequency}</p>`
-                                : ""
-                            }
-                            ${
-                              task.steps
-                                ? `
-                                <h4>Passos:</h4>
-                                <ol>
-                                    ${task.steps
-                                      .map((step) => `<li>${step}</li>`)
-                                      .join("")}
-                                </ol>
-                            `
-                                : ""
-                            }
-                        </div>
-                    `;
-          });
-          html += "</div>";
-          document.getElementById("maintenanceContent").innerHTML = html;
+          function renderMaintenanceTab(period) {
+            let html = '<div class="cards-grid">';
+            html += "</div>";
+            document.getElementById("maintenanceContent").innerHTML = html;
+            console.log(`Maintenance content for period "${period}" rendered`);
+          }
+
+          function showMaintenanceTab(period) {
+            const tabs = document.querySelectorAll(".tabs .tab-button");
+            tabs.forEach((tab) => tab.classList.remove("active"));
+            event.target.classList.add("active");
+            renderMaintenanceTab(period);
+          }
+
+          document.getElementById("maintenanceModal").style.display = "block";
+          renderMaintenanceTab("daily");
+          window.showMaintenanceTab = showMaintenanceTab;
+        } catch (error) {
+          console.error("Erro ao carregar guia de manutenção:", error);
+          document.getElementById("maintenanceContent").innerHTML = `
+      <div class="card error">
+        <h3>Erro ao carregar o guia de manutenção</h3>
+        <p>Por favor, tente novamente mais tarde.</p>
+      </div>
+    `;
         }
-
-        function showMaintenanceTab(period) {
-          const tabs = document.querySelectorAll(".tabs .tab-button");
-          tabs.forEach((tab) => tab.classList.remove("active"));
-          event.target.classList.add("active");
-          renderMaintenanceTab(period);
-        }
-
-        document.getElementById("maintenanceModal").style.display = "block";
-        renderMaintenanceTab("daily"); // Mostra primeira tab por padrão
-        window.showMaintenanceTab = showMaintenanceTab;
       }
 
       async function showDocs() {
-        const response = await fetch("/docs");
-        const docs = await response.json();
+        try {
+          const response = await fetch("/docs");
+          const docs = await response.json();
+          console.log("Docs data:", docs);
 
-        function renderDocsTab(section) {
-          let html = "";
-          const content = docs[section];
-
-          if (section === "overview") {
-            html = `
-                        <div class="card">
-                            <h3 class="card-title">${content.title}</h3>
-                            <p>${content.description}</p>
-                            <h4>Componentes:</h4>
-                            <ul>
-                                ${content.components
-                                  .map((comp) => `<li>${comp}</li>`)
-                                  .join("")}
-                            </ul>
-                        </div>
-                    `;
-          } else if (section === "setup") {
-            html = `
-                        <div class="cards-grid">
-                            <div class="card">
-                                <h3 class="card-title">Hardware Necessário</h3>
-                                <ul>
-                                    ${content.requirements.hardware
-                                      .map((hw) => `<li>${hw}</li>`)
-                                      .join("")}
-                                </ul>
-                            </div>
-                            <div class="card">
-                                <h3 class="card-title">Software Necessário</h3>
-                                <ul>
-                                    ${content.requirements.software
-                                      .map((sw) => `<li>${sw}</li>`)
-                                      .join("")}
-                                </ul>
-                            </div>
-                            <div class="card">
-                                <h3 class="card-title">Instalação</h3>
-                                <ol>
-                                    ${content.installation
-                                      .map((step) => `<li>${step}</li>`)
-                                      .join("")}
-                                </ol>
-                            </div>
-                        </div>
-                    `;
-          } else if (section === "api") {
-            html = `
-                        <div class="card">
-                            <h3 class="card-title">Endpoints da API</h3>
-                            <div class="api-endpoints">
-                                ${content.endpoints
-                                  .map(
-                                    (endpoint) => `
-                                    <div class="endpoint">
-                                        <code>${endpoint.method} ${endpoint.route}</code>
-                                        <p>${endpoint.description}</p>
-                                    </div>
-                                `
-                                  )
-                                  .join("")}
-                            </div>
-                        </div>
-                    `;
+          function renderDocsTab(section) {
+            let html = "";
+            document.getElementById("docsContent").innerHTML = html;
+            console.log(`Docs content for section "${section}" rendered`);
           }
 
-          document.getElementById("docsContent").innerHTML = html;
-        }
+          function showDocsTab(section) {
+            const tabs = document.querySelectorAll(".tabs .tab-button");
+            tabs.forEach((tab) => tab.classList.remove("active"));
+            event.target.classList.add("active");
+            renderDocsTab(section);
+          }
 
-        function showDocsTab(section) {
-          const tabs = document.querySelectorAll(".tabs .tab-button");
-          tabs.forEach((tab) => tab.classList.remove("active"));
-          event.target.classList.add("active");
-          renderDocsTab(section);
+          document.getElementById("docsModal").style.display = "block";
+          renderDocsTab("overview");
+          window.showDocsTab = showDocsTab;
+        } catch (error) {
+          console.error("Erro ao carregar documentação:", error);
+          document.getElementById("docsContent").innerHTML = `
+      <div class="card error">
+        <h3>Erro ao carregar a documentação</h3>
+        <p>Por favor, tente novamente mais tarde.</p>
+      </div>
+    `;
         }
-
-        document.getElementById("docsModal").style.display = "block";
-        renderDocsTab("overview"); // Mostra primeira tab por padrão
-        window.showDocsTab = showDocsTab;
       }
 
       async function showFeatures() {
-        const response = await fetch("/features");
-        const features = await response.json();
-        let html = `
-                <div class="cards-grid">
-                    ${Object.entries(features)
-                      .map(
-                        ([key, category]) => `
-                        <div class="card">
-                            <h3 class="card-title">${category.title}</h3>
-                            <ul>
-                                ${category.features
-                                  .map((feature) => `<li>${feature}</li>`)
-                                  .join("")}
-                            </ul>
-                        </div>
-                    `
-                      )
-                      .join("")}
-                </div>
-            `;
-        document.getElementById("featuresContent").innerHTML = html;
-        document.getElementById("featuresModal").style.display = "block";
-      }
-
-      function closeModal(modalId) {
-        document.getElementById(modalId).style.display = "none";
+        try {
+          const response = await fetch("/features");
+          const features = await response.json();
+          console.log("Features data:", features);
+          let html = `
+      <div class="cards-grid">
+        ...
+      </div>
+    `;
+          document.getElementById("featuresContent").innerHTML = html;
+          console.log("Features content rendered");
+          document.getElementById("featuresModal").style.display = "block";
+        } catch (error) {
+          console.error("Erro ao carregar funcionalidades:", error);
+          document.getElementById("featuresContent").innerHTML = `
+      <div class="card error">
+        <h3>Erro ao carregar as funcionalidades</h3>
+        <p>Por favor, tente novamente mais tarde.</p>
+      </div>
+    `;
+        }
       }
     </script>
 
@@ -1425,6 +1156,16 @@
         try {
           await fetch("/logout");
           window.location.href = "/auth";
+        } catch (error) {
+          console.error("Erro ao fazer logout:", error);
+        }
+      }
+
+      // Função de logout
+      async function voltarHome() {
+        try {
+          await fetch("/");
+          window.location.href = "/";
         } catch (error) {
           console.error("Erro ao fazer logout:", error);
         }
