@@ -239,18 +239,18 @@
         }
 
         .info-section {
-          display: none;
+          padding: 2rem;
+          background: rgba(0, 0, 0, 0.3);
+          border-radius: 15px;
         }
       }
     </style>
   </head>
   <body>
-    <!-- Botão Home -->
     <button onclick="voltarHome()" class="home-button">
       <i class="fas fa-home"></i>
       Página Inicial
     </button>
-
     <div class="auth-container">
       <!-- Seção de Informações -->
       <div class="info-section">
@@ -358,15 +358,6 @@
         }
       }
 
-      async function voltarHome() {
-        try {
-          await fetch("/");
-          window.location.href = "/";
-        } catch (error) {
-          console.error("Erro ao fazer logout:", error);
-        }
-      }
-
       async function handleLogin(event) {
         event.preventDefault();
 
@@ -456,7 +447,7 @@
           errorElement.style.display = "block";
           successElement.style.display = "none";
         }
-    }
+      }
     </script>
   </body>
 </html>
