@@ -42,9 +42,6 @@
       }
 
       .home-button {
-        position: fixed;
-        top: 20px;
-        left: 20px;
         padding: 0.8rem 1.5rem;
         background: var(--glass-bg);
         border: 1px solid var(--glass-border);
@@ -53,10 +50,10 @@
         font-weight: bold;
         cursor: pointer;
         transition: all 0.3s ease;
-        display: flex;
+        display: inline-flex;
         align-items: center;
         gap: 0.5rem;
-        text-decoration: none;
+        margin-left: 10px;
       }
 
       .home-button:hover {
@@ -88,13 +85,7 @@
       .info-section h1 {
         font-family: "Orbitron", sans-serif;
         font-size: 2.5rem;
-        color: transparent;
-        background: linear-gradient(
-          45deg,
-          var(--primary-neon),
-          var(--accent-pink)
-        );
-        -webkit-text-fill-color: transparent;
+        color: var(--text-light);
         margin-bottom: 1.5rem;
       }
 
@@ -183,6 +174,13 @@
         text-decoration: underline;
       }
 
+      .form-footer-links {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+      }
+
       .message {
         padding: 1rem;
         border-radius: 8px;
@@ -245,21 +243,13 @@
     </style>
   </head>
   <body>
-    <!-- Botão Home -->
-    <button onclick="voltarHome()" class="home-button">
-      <i class="fas fa-home"></i>
-      Página Inicial
-    </button>
-
     <div class="auth-container">
-      <!-- Seção de Informações -->
       <div class="info-section">
         <h1>CoffeeAI Control</h1>
         <p>
           Sistema inteligente de controle para sua cafeteira. Uma solução
           moderna para um café perfeito.
         </p>
-
         <ul class="feature-list">
           <li>
             <i class="fas fa-coffee"></i> Controle remoto da sua cafeteira
@@ -276,9 +266,7 @@
         </ul>
       </div>
 
-      <!-- Seção de Formulários -->
       <div class="auth-forms">
-        <!-- Formulário de Login -->
         <div id="loginForm" class="form-container active">
           <h2 class="form-title">Login</h2>
           <div class="message error-message" id="loginError"></div>
@@ -299,14 +287,17 @@
           </form>
 
           <div class="form-footer">
-            <p>
+            <p class="form-footer-links">
               Não tem uma conta?
               <a onclick="toggleForm('register')">Registre-se</a>
+              <button onclick="voltarHome()" class="home-button">
+                <i class="fas fa-home"></i>
+                Página Inicial
+              </button>
             </p>
           </div>
         </div>
 
-        <!-- Formulário de Registro -->
         <div id="registerForm" class="form-container">
           <h2 class="form-title">Criar Conta</h2>
           <div class="message error-message" id="registerError"></div>
@@ -335,8 +326,13 @@
           </form>
 
           <div class="form-footer">
-            <p>
-              Já tem uma conta? <a onclick="toggleForm('login')">Faça login</a>
+            <p class="form-footer-links">
+              Já tem uma conta? 
+              <a onclick="toggleForm('login')">Faça login</a>
+              <button onclick="voltarHome()" class="home-button">
+                <i class="fas fa-home"></i>
+                Página Inicial
+              </button>
             </p>
           </div>
         </div>
@@ -344,7 +340,6 @@
     </div>
 
     <script>
-      // Funções de autenticação
       function toggleForm(formType) {
         const loginForm = document.getElementById("loginForm");
         const registerForm = document.getElementById("registerForm");
@@ -391,7 +386,6 @@
             successElement.style.display = "block";
             errorElement.style.display = "none";
 
-            // Redireciona para o sistema após um breve delay
             setTimeout(() => {
               window.location.href = "/system";
             }, 500);
@@ -414,8 +408,7 @@
         const name = document.getElementById("registerName").value;
         const email = document.getElementById("registerEmail").value;
         const password = document.getElementById("registerPassword").value;
-        const confirmPassword =
-          document.getElementById("confirmPassword").value;
+        const confirmPassword = document.getElementById("confirmPassword").value;
         const errorElement = document.getElementById("registerError");
         const successElement = document.getElementById("registerSuccess");
 
@@ -441,7 +434,6 @@
             successElement.style.display = "block";
             errorElement.style.display = "none";
 
-            // Redireciona para o login após 2 segundos
             setTimeout(() => {
               toggleForm("login");
             }, 2000);
@@ -456,7 +448,7 @@
           errorElement.style.display = "block";
           successElement.style.display = "none";
         }
-    }
+      }
     </script>
   </body>
 </html>
