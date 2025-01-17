@@ -136,9 +136,13 @@ def token_required(f):
     return decorated
 
 # Rotas
+#@app.route('/')
+#def index():
+#    return redirect(url_for('auth'))
+
 @app.route('/')
 def index():
-    return redirect(url_for('auth'))
+    return render_template('index.html')
 
 @app.route('/auth')
 def auth():
