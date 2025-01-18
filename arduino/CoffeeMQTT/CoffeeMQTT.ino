@@ -144,6 +144,23 @@ void sendHeartbeat() {
 void loop() {
     // Envie heartbeat a cada 2 segundos
     static unsigned long lastHeartbeat = 0;
+
+    if (Serial.available() > 0) {
+        String command = Serial.readStringUntil('\n');
+        command.trim();
+        
+        if (command == "ping") {
+        Serial.println("pong");
+        }
+        else if (command == "ligar") {
+        // Seu código para ligar
+        Serial.println("ok");
+        }
+        else if (command == "desligar") {
+        // Seu código para desligar
+        Serial.println("ok");
+        }
+    }
     if (millis() - lastHeartbeat > 2000) {
         sendHeartbeat();
         lastHeartbeat = millis();

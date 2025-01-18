@@ -8,6 +8,8 @@ import json
 import jwt
 import os
 import sqlite3
+import serial
+import serial.tools.list_ports
 
 app = Flask(__name__)
 CORS(app)
@@ -28,6 +30,10 @@ MQTT_TOPIC_STATUS = "cafeteira/status"
 last_arduino_heartbeat = None
 ARDUINO_TIMEOUT = 5  # segundos para considerar Arduino desconectado
 
+# Configuração da comunicação serial
+arduino_serial = None
+BAUD_RATE = 115200  # Mesma taxa do Arduino
+
 # Modifique o coffee_state
 coffee_state = {
     "status": "desligada",
@@ -47,6 +53,29 @@ arduino_connection = {
     "last_heartbeat": None,
     "timeout": 10  # segundos para considerar desconectado
 }
+
+# Função para encontrar e conectar ao Arduino
+def connect_arduino():
+    """Procura e conecta ao Arduino via porta serial."""
+    global arduino_serial
+    try:
+        ports = list(serial.tools.list_ports.comports())
+        
+        for port in ports:
+            # Procura portas que podem ser Arduino
+            if any(x in port.description for x in ["USB", "Arduino", "CH340", "Serial"]):
+                try:
+                    arduino_serial = serial.Serial(port.device, BAUD_RATE, timeout=1)
+                    print(f"Arduino conectado na porta {port.device}")
+                    return True
+                except:
+                    continue
+        
+        print("Arduino não encontrado")
+        return False
+    except Exception as e:
+        print(f"Erro ao conectar Arduino: {e}")
+        return False
 
 # Funções do Banco de Dados
 def init_db():
@@ -108,18 +137,21 @@ def on_message(client, userdata, msg):
     except Exception as e:
         print(f"Erro ao processar mensagem MQTT: {e}")
 
-# Função para verificar se o Arduino ainda está conectado
+# Função para verificar se o Arduino está respondendo
 def check_arduino_connection():
-    if arduino_connection["last_heartbeat"] is None:
-        return False
+    """Verifica se o Arduino está respondendo."""
+    global arduino_serial
+    
+    if arduino_serial is None:
+        return connect_arduino()
         
-    time_since_last_heartbeat = (datetime.now() - arduino_connection["last_heartbeat"]).total_seconds()
-    is_connected = time_since_last_heartbeat < arduino_connection["timeout"]
-    
-    arduino_connection["is_connected"] = is_connected
-    coffee_state["arduino_connected"] = is_connected
-    
-    return is_connected
+    try:
+        arduino_serial.write(b'ping\n')
+        response = arduino_serial.readline().decode().strip()
+        return response == "pong"
+    except:
+        arduino_serial = None
+        return False
 
 # Adicione uma função para verificar a conexão do Arduino
 def is_arduino_connected():
@@ -306,51 +338,71 @@ def chat(current_user):
         message = data.get('message', '').lower()
         print(f"\nMensagem recebida: '{message}'")
 
-        # Verifica status de conexão do Arduino
-        arduino_status = check_arduino_connection()
+        # Verifica status da conexão serial do Arduino
+        arduino_connected = check_arduino_connection()
 
-        # Tratamento de comandos relacionados à cafeteira
-        if 'ligar' in message and 'cafeteira' in message:
-            if not arduino_status:
+        # Comandos relacionados ao Arduino e cafeteira
+        if 'arduino' in message and ('status' in message or 'conectado' in message):
+            if arduino_connected:
                 return jsonify({
-                    "answer": "⚠️ Não é possível ligar a cafeteira pois o Arduino não está conectado.\n\n"
-                             "Por favor:\n"
-                             "1. Verifique se o Arduino está energizado\n"
-                             "2. Confirme se o código está carregado corretamente\n"
-                             "3. Verifique a conexão com a rede"
-                })
-            
-            mqtt_client.publish(MQTT_TOPIC_COMMAND, "ligar")
-            coffee_state.update({
-                "status": "ligada",
-                "system_status": "online",
-                "temperature": "25.0"  # Temperatura inicial
-            })
-            update_coffee_state(json.dumps(coffee_state))
-
-        elif 'desligar' in message and 'cafeteira' in message:
-            mqtt_client.publish(MQTT_TOPIC_COMMAND, "desligar")
-            coffee_state.update({
-                "status": "desligada",
-                "system_status": "offline",
-                "temperature": "0"  # Reseta temperatura
-            })
-            update_coffee_state(json.dumps(coffee_state))
-
-        # Verifica perguntas sobre status do Arduino
-        elif 'arduino' in message and ('status' in message or 'conectado' in message):
-            if arduino_status:
-                return jsonify({
-                    "answer": "✅ O Arduino está conectado e funcionando normalmente."
+                    "answer": "✅ O Arduino está conectado e comunicando via porta serial."
                 })
             else:
                 return jsonify({
-                    "answer": "❌ O Arduino não está conectado no momento.\n\n"
-                             "Possíveis soluções:\n"
-                             "1. Verifique a alimentação do Arduino\n"
-                             "2. Confirme se o código está carregado\n"
-                             "3. Verifique a conexão de rede"
+                    "answer": "❌ Arduino não detectado.\n\n"
+                             "Por favor, verifique:\n"
+                             "1. Se o Arduino está conectado via USB\n"
+                             "2. Se o código correto está carregado no Arduino\n"
+                             "3. Se não há outros programas usando a porta serial"
                 })
+
+        elif 'ligar' in message and 'cafeteira' in message:
+            if not arduino_connected:
+                return jsonify({
+                    "answer": "⚠️ Não é possível ligar a cafeteira.\n\n"
+                             "O Arduino não está conectado ao sistema.\n"
+                             "Conecte o Arduino via USB e tente novamente."
+                })
+
+            try:
+                # Envia comando para o Arduino
+                if arduino_serial:
+                    arduino_serial.write(b'ligar\n')
+                    # Aguarda confirmação do Arduino
+                    response = arduino_serial.readline().decode().strip()
+                    if response == "ok":
+                        coffee_state.update({
+                            "status": "ligada",
+                            "system_status": "online",
+                            "temperature": "25.0"
+                        })
+                        update_coffee_state(json.dumps(coffee_state))
+                    else:
+                        return jsonify({
+                            "answer": "⚠️ O Arduino não confirmou o comando. Tente novamente."
+                        })
+
+            except Exception as e:
+                print(f"Erro na comunicação serial: {e}")
+                return jsonify({
+                    "answer": "❌ Erro ao enviar comando para o Arduino."
+                })
+
+        elif 'desligar' in message and 'cafeteira' in message:
+            if arduino_serial:
+                try:
+                    arduino_serial.write(b'desligar\n')
+                    coffee_state.update({
+                        "status": "desligada",
+                        "system_status": "offline",
+                        "temperature": "0"
+                    })
+                    update_coffee_state(json.dumps(coffee_state))
+                except Exception as e:
+                    print(f"Erro ao desligar: {e}")
+                    return jsonify({
+                        "answer": "❌ Erro ao enviar comando de desligamento."
+                    })
 
         # Processamento normal do chat via Dify.ai
         headers = {
@@ -376,7 +428,7 @@ def chat(current_user):
         print(f"Erro no processamento: {str(e)}")
         return jsonify({
             'error': str(e),
-            'message': "Ocorreu um erro ao processar sua mensagem. Por favor, tente novamente."
+            'message': "Ocorreu um erro ao processar sua mensagem."
         }), 500
 
 # Rotas para os modais
@@ -821,6 +873,7 @@ if __name__ == '__main__':
     except Exception as e:
         print(f"Erro ao criar usuário de teste: {e}")
 
+    connect_arduino()
     # Conectar ao MQTT e iniciar o servidor
     connect_mqtt()
     app.run(debug=True)
