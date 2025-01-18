@@ -24,7 +24,11 @@ MQTT_PORT = int(os.getenv('MQTT_PORT', 1884))
 MQTT_TOPIC_COMMAND = "cafeteira/comando"
 MQTT_TOPIC_STATUS = "cafeteira/status"
 
-# Estado global da cafeteira
+# Variável global para último heartbeat do Arduino
+last_arduino_heartbeat = None
+ARDUINO_TIMEOUT = 5  # segundos para considerar Arduino desconectado
+
+# Modifique o coffee_state
 coffee_state = {
     "status": "desligada",
     "system_status": "offline",
@@ -33,7 +37,8 @@ coffee_state = {
     "water_level": "100",
     "maintenance_needed": False,
     "pressure": "0",
-    "shots_count": 0
+    "shots_count": 0,
+    "arduino_connected": False
 }
 
 # Funções do Banco de Dados
@@ -60,19 +65,43 @@ def get_db():
 # Configuração MQTT
 mqtt_client = mqtt.Client()
 
+# Modifique a função de conexão MQTT
 def on_connect(client, userdata, flags, rc):
     print(f"Conectado ao broker MQTT com código: {rc}")
     client.subscribe([(MQTT_TOPIC_COMMAND, 0), (MQTT_TOPIC_STATUS, 0)])
+    # Quando conectar, publicar uma mensagem para verificar conectividade
+    client.publish("cafeteira/ping", "ping")
+    global coffee_state
+    coffee_state["arduino_connected"] = True
+
+# Adicione uma função para desconexão MQTT
+def on_disconnect(client, userdata, rc):
+    print("Desconectado do broker MQTT")
+    global coffee_state
+    coffee_state["arduino_connected"] = False
 
 def on_message(client, userdata, msg):
+    global last_arduino_heartbeat
     try:
         payload = msg.payload.decode()
         print(f"Mensagem recebida no tópico {msg.topic}: {payload}")
         
-        if msg.topic == MQTT_TOPIC_STATUS:
+        # Atualiza o heartbeat quando recebe mensagem do Arduino
+        if msg.topic == "cafeteira/heartbeat":
+            last_arduino_heartbeat = datetime.now()
+            coffee_state["arduino_connected"] = True
+        elif msg.topic == MQTT_TOPIC_STATUS:
             update_coffee_state(payload)
     except Exception as e:
         print(f"Erro ao processar mensagem MQTT: {e}")
+
+
+# Adicione uma função para verificar a conexão do Arduino
+def is_arduino_connected():
+    if last_arduino_heartbeat is None:
+        return False
+    time_diff = (datetime.now() - last_arduino_heartbeat).total_seconds()
+    return time_diff < ARDUINO_TIMEOUT
 
 def update_coffee_state(payload):
     global coffee_state
@@ -241,6 +270,7 @@ def system(current_user):
 
 @app.route('/status')
 def get_status():
+    coffee_state["arduino_connected"] = is_arduino_connected()
     return jsonify(coffee_state)
 
 @app.route('/chat', methods=['POST'])
@@ -251,6 +281,18 @@ def chat(current_user):
         message = data.get('message', '').lower()
         
         print(f"\nMensagem recebida: '{message}'")
+        
+        # Verifica se é comando para ligar e se o Arduino está conectado
+        if 'ligar' in message and 'cafeteira' in message:
+            if not is_arduino_connected():
+                return jsonify({
+                    "answer": "Não foi possível ligar a cafeteira pois o Arduino não está conectado. Por favor, verifique a conexão física do dispositivo."
+                })
+            
+            mqtt_client.publish(MQTT_TOPIC_COMMAND, "ligar")
+            coffee_state["status"] = "ligada"
+            coffee_state["system_status"] = "online"
+            update_coffee_state(json.dumps(coffee_state))
         
         headers = {
             'Authorization': f'Bearer {DIFY_API_KEY}',

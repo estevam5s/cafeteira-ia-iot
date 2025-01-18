@@ -137,7 +137,17 @@ void setup() {
     client.setCallback(callback);
 }
 
+void sendHeartbeat() {
+    client.publish("cafeteira/heartbeat", "alive");
+}
+
 void loop() {
+    // Envie heartbeat a cada 2 segundos
+    static unsigned long lastHeartbeat = 0;
+    if (millis() - lastHeartbeat > 2000) {
+        sendHeartbeat();
+        lastHeartbeat = millis();
+    }
     if (!client.connected()) {
         reconnect();
     }

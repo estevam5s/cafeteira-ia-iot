@@ -689,6 +689,16 @@
       .card strong {
         color: var(--primary-neon);
       }
+
+      .control-button:disabled {
+        cursor: not-allowed;
+        opacity: 0.5;
+      }
+
+      .control-button:disabled:hover {
+        transform: none;
+        box-shadow: none;
+      }
     </style>
   </head>
   <body>
@@ -771,6 +781,10 @@
         </div>
 
         <div class="status-panel">
+          <div class="status-item">
+            <span class="status-indicator" id="arduino-status"></span>
+            <span id="arduino-status-text">Arduino: --</span>
+          </div>
           <div class="status-item">
             <span class="status-indicator" id="system-status"></span>
             <span id="system-status-text">Sistema: --</span>
@@ -1535,53 +1549,41 @@
         fetch("/status")
           .then((response) => response.json())
           .then((data) => {
-            // Atualiza status do sistema
-            const systemStatusIndicator =
-              document.getElementById("system-status");
-            const systemStatusText =
-              document.getElementById("system-status-text");
-
-            // Atualiza classe do indicador do sistema
-            systemStatusIndicator.className = `status-indicator ${
-              data.status === "ligada" ? "status-online" : "status-offline"
+            // Atualiza status do Arduino
+            const arduinoStatusIndicator =
+              document.getElementById("arduino-status");
+            const arduinoStatusText = document.getElementById(
+              "arduino-status-text"
+            );
+            arduinoStatusIndicator.className = `status-indicator status-${
+              data.arduino_connected ? "online" : "offline"
             }`;
-            systemStatusText.textContent = `Sistema: ${
-              data.status === "ligada" ? "Online" : "Offline"
-            }`;
-
-            // Atualiza status da cafeteira
-            const coffeeStatusIndicator =
-              document.getElementById("coffee-status");
-            const coffeeStatusText =
-              document.getElementById("coffee-status-text");
-            const tempElement = document.getElementById("coffee-temperature");
-            const tempBar = document.getElementById("temperature-bar");
-            const lastActivity = document.getElementById("lastActivity");
-
-            // Atualiza classe do indicador da cafeteira
-            coffeeStatusIndicator.className = `status-indicator ${
-              data.status === "ligada" ? "status-online" : "status-offline"
-            }`;
-            coffeeStatusText.textContent = `Cafeteira: ${
-              data.status === "ligada" ? "Ligada" : "Desligada"
+            arduinoStatusText.textContent = `Arduino: ${
+              data.arduino_connected ? "Conectado" : "Desconectado"
             }`;
 
-            if (data.temperature) {
-              const temp = parseFloat(data.temperature);
-              tempElement.textContent = `Temperatura: ${temp.toFixed(1)}°C`;
-              // Ajusta a barra de temperatura apenas se a cafeteira estiver ligada
-              tempBar.style.width =
-                data.status === "ligada" ? `${Math.min(temp, 100)}%` : "0%";
+            // Desabilita o botão de ligar se o Arduino estiver desconectado
+            const powerOnButton = document.querySelector(
+              ".control-button.power-on"
+            );
+            if (powerOnButton) {
+              powerOnButton.disabled = !data.arduino_connected;
+              if (!data.arduino_connected) {
+                powerOnButton.style.opacity = "0.5";
+                powerOnButton.title = "Arduino não conectado";
+              } else {
+                powerOnButton.style.opacity = "1";
+                powerOnButton.title = "Ligar Cafeteira";
+              }
             }
 
-            if (data.last_activity) {
-              lastActivity.textContent = `Última Atividade: ${data.last_activity}`;
-            }
+            // ... resto do código de atualização de status ...
           })
           .catch((error) => {
             console.error("Erro ao atualizar status:", error);
           });
       }
+
       // Funções de controle
       async function controlCoffee(action) {
         const message = `${action} cafeteira`;
@@ -1591,58 +1593,58 @@
 
       // Funções de chat
       async function sendMessage() {
-    if (isProcessing) return;
+        if (isProcessing) return;
 
-    const input = document.getElementById("userInput");
-    const sendButton = document.getElementById("sendButton");
-    const message = input.value.trim();
+        const input = document.getElementById("userInput");
+        const sendButton = document.getElementById("sendButton");
+        const message = input.value.trim();
 
-    if (!message) return;
+        if (!message) return;
 
-    // Previne comportamento padrão que pode causar scroll
-    event?.preventDefault();
+        // Previne comportamento padrão que pode causar scroll
+        event?.preventDefault();
 
-    isProcessing = true;
-    sendButton.disabled = true;
-    sendButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        isProcessing = true;
+        sendButton.disabled = true;
+        sendButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
 
-    appendMessage(message, "user-message");
-    input.value = "";
+        appendMessage(message, "user-message");
+        input.value = "";
 
-    try {
-        const response = await fetch("/chat", {
+        try {
+          const response = await fetch("/chat", {
             method: "POST",
             headers: {
-                "Content-Type": "application/json",
+              "Content-Type": "application/json",
             },
             body: JSON.stringify({
-                conversation_id: conversationId,
-                message: message,
+              conversation_id: conversationId,
+              message: message,
             }),
-        });
+          });
 
-        const data = await response.json();
+          const data = await response.json();
 
-        if (data && data.answer) {
+          if (data && data.answer) {
             appendMessage(data.answer, "bot-message");
             if (data.conversation_id) {
-                conversationId = data.conversation_id;
+              conversationId = data.conversation_id;
             }
             updateStatus();
-        }
-    } catch (error) {
-        console.error("Erro:", error);
-        appendMessage(
+          }
+        } catch (error) {
+          console.error("Erro:", error);
+          appendMessage(
             "Desculpe, ocorreu um erro ao processar sua mensagem.",
             "bot-message"
-        );
-    } finally {
-        isProcessing = false;
-        sendButton.disabled = false;
-        sendButton.innerHTML = '<i class="fas fa-paper-plane"></i> Enviar';
-        input.focus();
-    }
-}
+          );
+        } finally {
+          isProcessing = false;
+          sendButton.disabled = false;
+          sendButton.innerHTML = '<i class="fas fa-paper-plane"></i> Enviar';
+          input.focus();
+        }
+      }
 
       function appendMessage(content, className) {
         const messagesContainer = document.getElementById("messages");
@@ -1679,24 +1681,24 @@
 
       // Event Listeners
       // Adicione esses event listeners
-document.addEventListener("DOMContentLoaded", function() {
-    const userInput = document.getElementById("userInput");
-    const form = document.querySelector(".input-container");
+      document.addEventListener("DOMContentLoaded", function () {
+        const userInput = document.getElementById("userInput");
+        const form = document.querySelector(".input-container");
 
-    // Previne o comportamento padrão do form
-    form.addEventListener("submit", (e) => {
-        e.preventDefault();
-        sendMessage();
-    });
+        // Previne o comportamento padrão do form
+        form.addEventListener("submit", (e) => {
+          e.preventDefault();
+          sendMessage();
+        });
 
-    // Previne o scroll ao pressionar enter
-    userInput.addEventListener("keypress", function(e) {
-        if (e.key === "Enter" && !isProcessing) {
+        // Previne o scroll ao pressionar enter
+        userInput.addEventListener("keypress", function (e) {
+          if (e.key === "Enter" && !isProcessing) {
             e.preventDefault();
             sendMessage();
-        }
-    });
-});
+          }
+        });
+      });
       // Limpa intervalo quando a página é fechada
       window.addEventListener("beforeunload", function () {
         if (statusUpdateInterval) {
