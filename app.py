@@ -7,6 +7,7 @@ import paho.mqtt.client as mqtt
 import json
 import jwt
 import os
+import time
 import sqlite3
 import serial
 import serial.tools.list_ports
@@ -55,26 +56,102 @@ arduino_connection = {
 }
 
 # Função para encontrar e conectar ao Arduino
+def force_release_port(port):
+    """Força a liberação da porta serial."""
+    try:
+        os.system(f'sudo fuser -k {port}')
+        time.sleep(2)  # Aguarda a liberação
+        return True
+    except Exception as e:
+        print(f"Erro ao liberar porta: {e}")
+        return False
+
 def connect_arduino():
     """Procura e conecta ao Arduino via porta serial."""
     global arduino_serial
+    
     try:
+        if arduino_serial is not None:
+            try:
+                arduino_serial.close()
+            except:
+                pass
+            arduino_serial = None
+            time.sleep(1)
+
         ports = list(serial.tools.list_ports.comports())
+        print("Procurando dispositivo serial...")
         
-        for port in ports:
-            # Procura portas que podem ser Arduino
-            if any(x in port.description for x in ["USB", "Arduino", "CH340", "Serial"]):
-                try:
-                    arduino_serial = serial.Serial(port.device, BAUD_RATE, timeout=1)
-                    print(f"Arduino conectado na porta {port.device}")
-                    return True
-                except:
-                    continue
-        
-        print("Arduino não encontrado")
-        return False
+        # Procura especificamente pelo CH340
+        ch340_ports = [p for p in ports if '1a86:7523' in p.hwid or 'CH340' in p.description]
+        if ch340_ports:
+            port = ch340_ports[0]
+        else:
+            # Fallback para qualquer porta USB
+            usb_ports = [p for p in ports if 'USB' in p.device]
+            if not usb_ports:
+                print("Nenhuma porta USB encontrada")
+                return False
+            port = usb_ports[0]
+
+        print(f"\nTentando conectar à {port.device}")
+        print(f"Hardware ID: {port.hwid}")
+        print(f"Descrição: {port.description}")
+
+        # Força liberação da porta
+        force_release_port(port.device)
+
+        try:
+            ser = serial.Serial(
+                port=port.device,
+                baudrate=115200,
+                bytesize=serial.EIGHTBITS,
+                parity=serial.PARITY_NONE,
+                stopbits=serial.STOPBITS_ONE,
+                timeout=1,
+                write_timeout=1,
+                exclusive=True  # Tenta acesso exclusivo
+            )
+        except Exception as e:
+            print(f"Erro ao abrir porta: {e}")
+            return False
+
+        # Limpa buffers e espera inicialização
+        ser.reset_input_buffer()
+        ser.reset_output_buffer()
+        time.sleep(2)
+
+        # Tenta comunicação
+        success = False
+        for attempt in range(3):
+            try:
+                ser.write(b'ping\n')
+                ser.flush()
+                time.sleep(0.1)
+                
+                if ser.in_waiting:
+                    response = ser.readline().decode().strip()
+                    print(f"Resposta: {response}")
+                    if response == "pong":
+                        arduino_serial = ser
+                        print(f"ESP32 encontrado na porta {port.device}")
+                        success = True
+                        break
+            except Exception as e:
+                print(f"Tentativa {attempt + 1} falhou: {e}")
+                time.sleep(1)
+
+        if not success and ser is not None:
+            try:
+                ser.close()
+            except:
+                pass
+            return False
+
+        return success
+
     except Exception as e:
-        print(f"Erro ao conectar Arduino: {e}")
+        print(f"Erro ao procurar ESP32: {e}")
         return False
 
 # Funções do Banco de Dados
@@ -142,16 +219,28 @@ def check_arduino_connection():
     """Verifica se o Arduino está respondendo."""
     global arduino_serial
     
-    if arduino_serial is None:
+    if arduino_serial is None or not arduino_serial.is_open:
         return connect_arduino()
         
     try:
         arduino_serial.write(b'ping\n')
-        response = arduino_serial.readline().decode().strip()
-        return response == "pong"
-    except:
-        arduino_serial = None
+        arduino_serial.flush()
+        time.sleep(0.1)
+        
+        if arduino_serial.in_waiting:
+            response = arduino_serial.readline().decode().strip()
+            return response == "pong"
+            
         return False
+    except Exception as e:
+        print(f"Erro na comunicação serial: {e}")
+        if arduino_serial is not None:
+            try:
+                arduino_serial.close()
+            except:
+                pass
+        arduino_serial = None
+        return connect_arduino()  # Tenta reconectar imediatamente
 
 # Adicione uma função para verificar a conexão do Arduino
 def is_arduino_connected():
@@ -327,8 +416,19 @@ def system(current_user):
 
 @app.route('/status')
 def get_status():
-    coffee_state["arduino_connected"] = is_arduino_connected()
-    return jsonify(coffee_state)
+    global coffee_state
+    try:
+        arduino_connected = check_arduino_connection()
+        coffee_state["arduino_connected"] = arduino_connected
+        
+        if arduino_connected:
+            # Atualiza o timestamp da última atividade
+            coffee_state["last_activity"] = datetime.now().strftime("%H:%M:%S")
+            
+        return jsonify(coffee_state)
+    except Exception as e:
+        print(f"Erro ao obter status: {e}")
+        return jsonify({"error": "Erro ao obter status"}), 500
 
 @app.route('/chat', methods=['POST'])
 @token_required
@@ -854,11 +954,11 @@ def get_features():
         }
     })
 
-if __name__ == '__main__':
+def main():
     init_db()
     
-    # Criar usuário de teste
     try:
+        # Criar usuário de teste
         db = get_db()
         cursor = db.cursor()
         cursor.execute('SELECT * FROM users WHERE email = ?', ('admin@example.com',))
@@ -874,6 +974,10 @@ if __name__ == '__main__':
         print(f"Erro ao criar usuário de teste: {e}")
 
     connect_arduino()
-    # Conectar ao MQTT e iniciar o servidor
     connect_mqtt()
-    app.run(debug=True)
+    
+    # Desativa reloader para evitar problemas com o terminal
+    app.run(debug=True, use_reloader=False)
+
+if __name__ == '__main__':
+    main()
