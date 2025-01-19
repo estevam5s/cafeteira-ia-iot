@@ -1,10 +1,8 @@
 Estou utilizando o arch linux
 
-Melhore o codigo python anexado e o codigo arduino tambem anexado
+Melhore o codigo python abaixo
 
-
-
-app.py
+# app.py
 
 from flask import Flask, render_template, request, jsonify, redirect, url_for
 from flask_cors import CORS
@@ -463,100 +461,6 @@ def get_status():
     except Exception as e:
         print(f"Erro ao obter status: {e}")
         return jsonify({"error": "Erro ao obter status"}), 500
-
-# @app.route('/chat', methods=['POST'])
-# @token_required
-# def chat(current_user):
-#     try:
-#         data = request.json
-#         message = data.get('message', '').lower()
-#         print(f"\nMensagem recebida: '{message}'")
-
-#         # Verifica status da conexão serial do Arduino
-#         arduino_connected = check_arduino_connection()
-
-#         # Comandos relacionados ao Arduino e cafeteira
-#         if 'arduino' in message and ('status' in message or 'conectado' in message):
-#             if arduino_connected:
-#                 return jsonify({
-#                     "answer": "✅ O Arduino está conectado e comunicando via porta serial."
-#                 })
-#             else:
-#                 return jsonify({
-#                     "answer": "❌ Arduino não detectado.\n\n"
-#                              "Por favor, verifique:\n"
-#                              "1. Se o Arduino está conectado via USB\n"
-#                              "2. Se o código correto está carregado no Arduino\n"
-#                              "3. Se não há outros programas usando a porta serial"
-#                 })
-
-#         elif 'ligar' in message and 'cafeteira' in message:
-#             if not arduino_connected:
-#                 return jsonify({
-#                     "answer": "⚠️ Não é possível ligar a cafeteira.\n\n"
-#                              "O Arduino não está conectado ao sistema.\n"
-#                              "Conecte o Arduino via USB e tente novamente."
-#                 })
-
-#             try:
-#                 # Envia comando para o Arduino
-#                 if arduino_serial:
-#                     arduino_serial.write(b'ligar\n')
-#                     # Aguarda confirmação do Arduino
-#                     response = arduino_serial.readline().decode().strip()
-#                     if response == "ok":
-#                         coffee_state.update({
-#                             "status": "ligada",
-#                             "system_status": "online",
-#                             "temperature": "25.0"
-#                         })
-#                         update_coffee_state(json.dumps(coffee_state))
-#                     else:
-#                         return jsonify({
-#                             "answer": "⚠️ O Arduino não confirmou o comando. Tente novamente."
-#                         })
-
-#             except Exception as e:
-#                 print(f"Erro na comunicação serial: {e}")
-#                 return jsonify({
-#                     "answer": "❌ Erro ao enviar comando para o Arduino."
-#                 })
-
-#         elif 'desligar' in message and 'cafeteira' in message:
-#             if arduino_serial:
-#                 try:
-#                     arduino_serial.write(b'desligar\n')
-#                     coffee_state.update({
-#                         "status": "desligada",
-#                         "system_status": "offline",
-#                         "temperature": "0"
-#                     })
-#                     update_coffee_state(json.dumps(coffee_state))
-#                 except Exception as e:
-#                     print(f"Erro ao desligar: {e}")
-#                     return jsonify({
-#                         "answer": "❌ Erro ao enviar comando de desligamento."
-#                     })
-
-#         # Processamento normal do chat via Dify.ai
-#         headers = {
-#             'Authorization': f'Bearer {DIFY_API_KEY}',
-#             'Content-Type': 'application/json'
-#         }
-        
-#         dify_response = requests.post(
-#             f'{DIFY_API_URL}/chat-messages',
-#             headers=headers,
-#             json={
-#                 'conversation_id': data.get('conversation_id'),
-#                 'inputs': {},
-#                 'query': message,
-#                 'response_mode': "blocking",
-#                 'user': "user"
-#             }
-#         )
-        
-#         return jsonify(dify_response.json())
 
 
 @app.route('/chat', methods=['POST'])
@@ -1130,8 +1034,9 @@ def main():
 if __name__ == '__main__':
     main()
 
+e o codigo arduino tambem avaixo:
 
-arduino/CoffeeMQTT/CoffeeMQTT.ino
+# arduino/CoffeeMQTT/CoffeeMQTT.ino
 
 #include <WiFi.h>
 #include <PubSubClient.h>
@@ -1483,65 +1388,6 @@ void setup() {
     state.systemReady = true;
     debugPrint("Sistema Inicializado!");
 }
-
-// void loop() {
-//     unsigned long currentMillis = millis();
-    
-//     // Processa comandos seriais
-//     handleSerialCommand();
-    
-//     // Verifica conexões
-//     if (!state.wifiConnected && (currentMillis - state.lastCommandTime > WIFI_RETRY_INTERVAL)) {
-//         connectWiFi();
-//     }
-    
-//     if (state.wifiConnected && !state.mqttConnected) {
-//         connectMQTT();
-//     }
-    
-//     // Lê sensores
-//     if (currentMillis - state.lastSensorRead >= SENSOR_READ_INTERVAL) {
-//         readSensors();
-//         state.lastSensorRead = currentMillis;
-//     }
-    
-//     // Publica status
-//     if (currentMillis - state.lastHeartbeat >= STATUS_INTERVAL) {
-//         publishStatus();
-//         state.lastHeartbeat = currentMillis;
-//     }
-    
-//     // Verifica timeout de comando
-//     if (state.cafeteiraLigada && 
-//         (currentMillis - state.lastCommandTime > COMMAND_TIMEOUT)) {
-//         handleDesligarCommand();
-//     }
-    
-//     // Mantém conexão MQTT
-//     if (state.mqttConnected) {
-//         mqttClient.loop();
-//     }
-    
-//     // Pisca LED se sistema não estiver pronto
-//     if (!state.systemReady) {
-//         digitalWrite(LED_STATUS, !digitalRead(LED_STATUS));
-//         delay(500);
-//     }
-// }
-
-// void loop() {
-//     if (Serial.available()) {
-//         String command = Serial.readStringUntil('\n');
-        
-//         if (command == "ligar") {
-//             // Lógica para ligar a cafeteira
-//             Serial.println("pong"); // Resposta ao comando
-//         } else if (command == "desligar") {
-//             // Lógica para desligar a cafeteira
-//             Serial.println("pong"); // Resposta ao comando
-//         }
-//     }
-// }
 
 unsigned long lastMillis = 0;
 const long interval = 1000;
