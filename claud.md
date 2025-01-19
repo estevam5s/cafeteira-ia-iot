@@ -1454,3 +1454,7 @@ Mas tenho a porta usb que nao se desconecta (/dev/ttyS4), o arduino deve estar n
 quando peco para ligar a cafeteira, aparece essa mensagem:
 
 "⚠️ Nenhuma resposta do Arduino na segunda tentativa. Tente novamente."
+
+
+Faça também uma documentação bem completa configurando todo o ambiente no arch linux
+ e também melhore o código para poder funcionar a IA com chatbot do Dify, pois ele só reconhece os comandos principais
