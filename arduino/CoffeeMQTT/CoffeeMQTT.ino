@@ -1,246 +1,430 @@
 #include <WiFi.h>
 #include <PubSubClient.h>
 #include <ArduinoJson.h>
+#include <SPIFFS.h>
+#include <Preferences.h>
+#include <OneWire.h>
+#include <DallasTemperature.h>
 
-// Configuração dos pinos
-const int RELE_CAFETEIRA = 25;
-const int LED_STATUS = 2;
+// Pinos do ESP32
+#define RELE_CAFETEIRA    25  // GPIO25 para relé da cafeteira
+#define LED_STATUS        2   // LED interno do ESP32
+#define SENSOR_TEMP       4   // GPIO4 para sensor de temperatura
+#define SENSOR_NIVEL      34  // GPIO34 para sensor de nível (ADC)
+#define SENSOR_PRESSAO    35  // GPIO35 para sensor de pressão (ADC)
 
-// Configurações do WiFi
-const char* ssid = "Penelopecharmosa";
-const char* password = "13275274";
+// Debug
+#define DEBUG true
+#define SERIAL_BAUD 115200
 
-// Configurações do MQTT
-const char* mqtt_server = "192.168.1.107";  // IP atualizado
-const int mqtt_port = 1884;
-const char* mqtt_topic_command = "cafeteira/comando";
-const char* mqtt_topic_status = "cafeteira/status";
+// Configuração de sensores
+OneWire oneWire(SENSOR_TEMP);
+DallasTemperature sensors(&oneWire);
 
-// Estado da cafeteira
-bool cafeteiraLigada = false;
-bool wifiConnected = false;
+// Estrutura para configurações
+struct Config {
+    char wifi_ssid[32];
+    char wifi_password[32];
+    char mqtt_server[32];
+    int mqtt_port;
+    bool configured;
+};
 
-// Objetos de conexão
+// Estrutura para estado do sistema
+struct SystemState {
+    bool cafeteiraLigada;
+    bool wifiConnected;
+    bool mqttConnected;
+    bool systemReady;
+    float temperature;
+    int waterLevel;
+    float pressure;
+    String lastError;
+    unsigned long lastCommandTime;
+    unsigned long lastSensorRead;
+    unsigned long lastHeartbeat;
+    unsigned long startTime;
+};
+
+// Constantes
+const unsigned long SENSOR_READ_INTERVAL = 2000;    // 2 segundos
+const unsigned long HEARTBEAT_INTERVAL = 1000;      // 1 segundo
+const unsigned long STATUS_INTERVAL = 5000;         // 5 segundos
+const unsigned long COMMAND_TIMEOUT = 300000;       // 5 minutos
+const unsigned long WIFI_RETRY_INTERVAL = 30000;    // 30 segundos
+const int MAX_WIFI_ATTEMPTS = 10;
+const float TEMP_MIN = 20.0;
+const float TEMP_MAX = 96.0;
+const int WATER_MIN = 20;
+const float PRESSURE_MIN = 8.0;
+const float PRESSURE_MAX = 12.0;
+
+// Variáveis globais
+Config config;
+SystemState state;
+Preferences preferences;
 WiFiClient espClient;
-PubSubClient client(espClient);
-unsigned long lastWifiCheck = 0;
-const long wifiCheckInterval = 5000;
+PubSubClient mqttClient(espClient);
 
-void setup_wifi() {
-    // Desconecta se já estiver conectado
-    WiFi.disconnect(true);
-    delay(1000);
+// Tópicos MQTT
+const char* MQTT_TOPIC_COMMAND = "cafeteira/comando";
+const char* MQTT_TOPIC_STATUS = "cafeteira/status";
+const char* MQTT_TOPIC_HEARTBEAT = "cafeteira/heartbeat";
+
+// Funções de utilidade
+void debugPrint(const char* message) {
+    if (DEBUG) {
+        Serial.println(message);
+    }
+}
+
+void debugPrintf(const char* format, ...) {
+    if (DEBUG) {
+        char buffer[256];
+        va_list args;
+        va_start(args, format);
+        vsnprintf(buffer, sizeof(buffer), format, args);
+        va_end(args);
+        Serial.print(buffer);
+    }
+}
+
+// Funções de configuração
+void loadConfig() {
+    preferences.begin("coffee", true);
+    preferences.getBytes("config", &config, sizeof(config));
+    preferences.end();
     
-    // Configura modo WiFi
-    WiFi.mode(WIFI_STA);
-    
-    Serial.println("\nConectando ao WiFi...");
-    Serial.print("SSID: ");
-    Serial.println(ssid);
-    
-    // Lista redes disponíveis antes de tentar conectar
-    Serial.println("Redes disponíveis:");
-    int n = WiFi.scanNetworks();
-    for (int i = 0; i < n; ++i) {
-        Serial.printf("%d: %s (%d dBm)\n", i+1, WiFi.SSID(i).c_str(), WiFi.RSSI(i));
+    if (!config.configured) {
+        strcpy(config.wifi_ssid, "SuaRedeWiFi");
+        strcpy(config.wifi_password, "SuaSenhaWiFi");
+        strcpy(config.mqtt_server, "localhost");
+        config.mqtt_port = 1884;
+        config.configured = false;
+    }
+}
+
+void saveConfig() {
+    preferences.begin("coffee", false);
+    preferences.putBytes("config", &config, sizeof(config));
+    preferences.end();
+}
+
+// Funções de sensor
+void readSensors() {
+    // Leitura de temperatura
+    sensors.requestTemperatures();
+    state.temperature = sensors.getTempCByIndex(0);
+    if (state.temperature == DEVICE_DISCONNECTED_C) {
+        state.temperature = 25.0; // Valor padrão se sensor falhar
     }
     
-    WiFi.begin(ssid, password);
+    // Leitura do nível de água (simulado com ADC)
+    int rawWater = analogRead(SENSOR_NIVEL);
+    state.waterLevel = map(rawWater, 0, 4095, 0, 100);
     
-    // Aguarda conexão com timeout
+    // Leitura de pressão (simulado com ADC)
+    int rawPressure = analogRead(SENSOR_PRESSAO);
+    state.pressure = map(rawPressure, 0, 4095, 0, 15);
+}
+
+// Funções de comunicação
+void connectWiFi() {
+    if (WiFi.status() == WL_CONNECTED) return;
+    
+    debugPrint("Conectando ao WiFi...");
+    WiFi.begin(config.wifi_ssid, config.wifi_password);
+    
     int attempts = 0;
-    while (WiFi.status() != WL_CONNECTED && attempts < 20) {
+    while (WiFi.status() != WL_CONNECTED && attempts < MAX_WIFI_ATTEMPTS) {
         digitalWrite(LED_STATUS, !digitalRead(LED_STATUS));
         delay(500);
         Serial.print(".");
         attempts++;
-        
-        // Mostra status da conexão a cada tentativa
-        if (attempts % 5 == 0) {
-            Serial.printf("\nStatus WiFi: %d\n", WiFi.status());
-        }
     }
-    Serial.println("");
     
     if (WiFi.status() == WL_CONNECTED) {
-        Serial.println("\nWiFi conectado!");
-        Serial.print("IP: ");
-        Serial.println(WiFi.localIP());
-        Serial.print("Força do sinal: ");
-        Serial.print(WiFi.RSSI());
-        Serial.println(" dBm");
-        digitalWrite(LED_STATUS, HIGH);
-        wifiConnected = true;
+        state.wifiConnected = true;
+        debugPrint("\nWiFi conectado!");
+        debugPrintf("IP: %s\n", WiFi.localIP().toString().c_str());
     } else {
-        Serial.println("\nFalha na conexão WiFi");
-        Serial.print("Status final: ");
-        Serial.println(WiFi.status());
-        digitalWrite(LED_STATUS, LOW);
-        wifiConnected = false;
+        state.wifiConnected = false;
+        state.lastError = "Falha na conexão WiFi";
     }
 }
 
-void handleSerial() {
-    if (Serial.available() > 0) {
-        String command = Serial.readStringUntil('\n');
-        command.trim();
-        
-        if (command == "ping") {
-            Serial.println("pong");
-        }
-        else if (command == "ligar") {
-            cafeteiraLigada = true;
-            digitalWrite(RELE_CAFETEIRA, HIGH);
-            digitalWrite(LED_STATUS, HIGH);
-            Serial.println("ok");
-            publishStatus();
-        }
-        else if (command == "desligar") {
-            cafeteiraLigada = false;
-            digitalWrite(RELE_CAFETEIRA, LOW);
-            digitalWrite(LED_STATUS, LOW);
-            Serial.println("ok");
-            publishStatus();
-        }
-        else if (command == "status") {
-            Serial.println("\n--- Status do Sistema ---");
-            Serial.print("WiFi Status: ");
-            Serial.println(WiFi.status());
-            Serial.print("WiFi Conectado: ");
-            Serial.println(wifiConnected ? "Sim" : "Não");
-            if (wifiConnected) {
-                Serial.print("IP: ");
-                Serial.println(WiFi.localIP());
-                Serial.print("RSSI: ");
-                Serial.print(WiFi.RSSI());
-                Serial.println(" dBm");
-            }
-            Serial.print("MQTT Conectado: ");
-            Serial.println(client.connected() ? "Sim" : "Não");
-            Serial.print("Cafeteira: ");
-            Serial.println(cafeteiraLigada ? "ligada" : "desligada");
-            Serial.println("---------------------");
-        }
-        else if (command == "scan") {
-            Serial.println("\nEscaneando redes WiFi...");
-            int n = WiFi.scanNetworks();
-            for (int i = 0; i < n; ++i) {
-                Serial.printf("%d: %s (%d dBm)\n", i+1, WiFi.SSID(i).c_str(), WiFi.RSSI(i));
-            }
-        }
-        else if (command == "reconnect") {
-            Serial.println("Forçando reconexão WiFi...");
-            setup_wifi();
-        }
+void connectMQTT() {
+    if (!state.wifiConnected || mqttClient.connected()) return;
+    
+    debugPrint("Conectando ao MQTT...");
+    String clientId = "ESP32Coffee-";
+    clientId += String(random(0xffff), HEX);
+    
+    if (mqttClient.connect(clientId.c_str())) {
+        state.mqttConnected = true;
+        mqttClient.subscribe(MQTT_TOPIC_COMMAND);
+        debugPrint("MQTT Conectado!");
+    } else {
+        state.mqttConnected = false;
+        state.lastError = "Falha MQTT: " + String(mqttClient.state());
     }
 }
 
-void callback(char* topic, byte* payload, unsigned int length) {
+void publishStatus() {
+    StaticJsonDocument<512> doc;
+    char buffer[512];
+    
+    doc["status"] = state.cafeteiraLigada ? "ligada" : "desligada";
+    doc["system_status"] = state.systemReady ? "online" : "offline";
+    doc["temperature"] = state.temperature;
+    doc["water_level"] = state.waterLevel;
+    doc["pressure"] = state.pressure;
+    doc["last_error"] = state.lastError;
+    doc["uptime"] = (millis() - state.startTime) / 1000;
+    
+    serializeJson(doc, buffer);
+    
+    // Publica no MQTT se conectado
+    if (state.mqttConnected) {
+        mqttClient.publish(MQTT_TOPIC_STATUS, buffer);
+    }
+    
+    // Sempre envia pela serial
+    Serial.println(buffer);
+}
+
+// Callback MQTT
+void mqttCallback(char* topic, byte* payload, unsigned int length) {
     String message = "";
     for (int i = 0; i < length; i++) {
         message += (char)payload[i];
     }
     
-    Serial.println("Mensagem recebida [" + String(topic) + "]: " + message);
+    debugPrintf("Mensagem MQTT [%s]: %s\n", topic, message.c_str());
     
-    if (String(topic) == mqtt_topic_command) {
-        if (message == "ligar") {
-            cafeteiraLigada = true;
-            digitalWrite(RELE_CAFETEIRA, HIGH);
-            digitalWrite(LED_STATUS, HIGH);
-            publishStatus();
-        }
-        else if (message == "desligar") {
-            cafeteiraLigada = false;
-            digitalWrite(RELE_CAFETEIRA, LOW);
-            digitalWrite(LED_STATUS, LOW);
-            publishStatus();
-        }
+    if (message == "ligar") {
+        handleLigarCommand();
+    } else if (message == "desligar") {
+        handleDesligarCommand();
     }
 }
 
-void publishStatus() {
-    if (!client.connected() || !wifiConnected) return;
+// Handlers de comando
+void handleSerialCommand() {
+    if (!Serial.available()) return;
     
-    StaticJsonDocument<200> doc;
-    doc["status"] = cafeteiraLigada ? "ligada" : "desligada";
-    doc["wifi"] = wifiConnected ? "conectado" : "desconectado";
-    doc["ip"] = WiFi.localIP().toString();
-    doc["rssi"] = WiFi.RSSI();
+    String command = Serial.readStringUntil('\n');
+    command.trim();
     
-    char buffer[200];
-    serializeJson(doc, buffer);
-    client.publish(mqtt_topic_status, buffer);
+    debugPrintf("Comando Serial: %s\n", command.c_str());
+    
+    if (command == "ping") {
+        Serial.println("pong");
+    }
+    else if (command == "ligar") {
+        handleLigarCommand();
+    }
+    else if (command == "desligar") {
+        handleDesligarCommand();
+    }
+    else if (command == "status") {
+        publishStatus();
+    }
+    else if (command == "config") {
+        handleConfigCommand();
+    }
 }
 
-void reconnectMQTT() {
-    if (!wifiConnected) return;
+void handleLigarCommand() {
+    if (!state.systemReady) {
+        Serial.println("error:sistema_nao_pronto");
+        return;
+    }
     
-    // Tenta conectar ao MQTT
-    if (!client.connected()) {
-        Serial.print("Conectando ao MQTT...");
-        String clientId = "ESP32Cafeteira-";
-        clientId += String(random(0xffff), HEX);
+    if (state.temperature > TEMP_MAX) {
+        Serial.println("error:temperatura_alta");
+        return;
+    }
+    
+    if (state.waterLevel < WATER_MIN) {
+        Serial.println("error:nivel_agua_baixo");
+        return;
+    }
+    
+    state.cafeteiraLigada = true;
+    digitalWrite(RELE_CAFETEIRA, HIGH);
+    digitalWrite(LED_STATUS, HIGH);
+    state.lastCommandTime = millis();
+    Serial.println("ok");
+    publishStatus();
+}
+
+void handleDesligarCommand() {
+    state.cafeteiraLigada = false;
+    digitalWrite(RELE_CAFETEIRA, LOW);
+    digitalWrite(LED_STATUS, LOW);
+    Serial.println("ok");
+    publishStatus();
+}
+
+void handleConfigCommand() {
+    Serial.setTimeout(30000);
+    
+    Serial.println("Digite o SSID do WiFi:");
+    String ssid = Serial.readStringUntil('\n');
+    ssid.trim();
+    
+    Serial.println("Digite a senha do WiFi:");
+    String pass = Serial.readStringUntil('\n');
+    pass.trim();
+    
+    Serial.println("Digite o IP do servidor MQTT:");
+    String mqtt = Serial.readStringUntil('\n');
+    mqtt.trim();
+    
+    Serial.println("Digite a porta MQTT (padrão 1884):");
+    String port = Serial.readStringUntil('\n');
+    port.trim();
+    
+    if (ssid.length() > 0 && pass.length() > 0) {
+        ssid.toCharArray(config.wifi_ssid, sizeof(config.wifi_ssid));
+        pass.toCharArray(config.wifi_password, sizeof(config.wifi_password));
+        mqtt.toCharArray(config.mqtt_server, sizeof(config.mqtt_server));
+        config.mqtt_port = port.toInt() > 0 ? port.toInt() : 1884;
+        config.configured = true;
         
-        if (client.connect(clientId.c_str())) {
-            Serial.println("conectado");
-            client.subscribe(mqtt_topic_command);
-            publishStatus();
-        } else {
-            Serial.print("falhou, rc=");
-            Serial.print(client.state());
-            Serial.println(" tentando novamente em 5 segundos");
-        }
+        saveConfig();
+        Serial.println("Configurações salvas! Reiniciando...");
+        delay(1000);
+        ESP.restart();
+    } else {
+        Serial.println("Configuração cancelada");
     }
+    
+    Serial.setTimeout(1000);
 }
 
+// Setup e Loop principais
 void setup() {
-    // Configuração dos pinos
+    // Inicialização de pinos
     pinMode(RELE_CAFETEIRA, OUTPUT);
     pinMode(LED_STATUS, OUTPUT);
     digitalWrite(RELE_CAFETEIRA, LOW);
     digitalWrite(LED_STATUS, LOW);
     
-    // Inicia comunicação serial
-    Serial.begin(115200);
-    delay(2000); // Aguarda inicialização completa
-    Serial.println("\nIniciando CoffeeAI Control (ESP32)...");
+    // Inicialização de sensores
+    sensors.begin();
     
-    // Configura WiFi
-    setup_wifi();
+    // Inicialização da comunicação serial
+    Serial.begin(SERIAL_BAUD);
+    Serial.setTimeout(1000);
     
-    // Configura MQTT
-    client.setServer(mqtt_server, mqtt_port);
-    client.setCallback(callback);
+    // Inicialização do estado
+    state = {
+        false,  // cafeteiraLigada
+        false,  // wifiConnected
+        false,  // mqttConnected
+        false,  // systemReady
+        25.0,   // temperature
+        100,    // waterLevel
+        9.0,    // pressure
+        "",     // lastError
+        0,      // lastCommandTime
+        0,      // lastSensorRead
+        0,      // lastHeartbeat
+        millis() // startTime
+    };
+    
+    // Carrega configurações
+    loadConfig();
+    
+    // Configura callbacks MQTT
+    mqttClient.setServer(config.mqtt_server, config.mqtt_port);
+    mqttClient.setCallback(mqttCallback);
+    
+    debugPrint("\n=== CoffeeAI Control v2.1 ===\n");
+    
+    // Sistema pronto
+    state.systemReady = true;
+    debugPrint("Sistema Inicializado!");
 }
 
-void loop() {
-    // Sempre verifica comandos seriais primeiro
-    handleSerial();
+// void loop() {
+//     unsigned long currentMillis = millis();
     
-    // Verifica WiFi periodicamente
-    unsigned long currentMillis = millis();
-    if (currentMillis - lastWifiCheck >= wifiCheckInterval) {
-        lastWifiCheck = currentMillis;
+//     // Processa comandos seriais
+//     handleSerialCommand();
+    
+//     // Verifica conexões
+//     if (!state.wifiConnected && (currentMillis - state.lastCommandTime > WIFI_RETRY_INTERVAL)) {
+//         connectWiFi();
+//     }
+    
+//     if (state.wifiConnected && !state.mqttConnected) {
+//         connectMQTT();
+//     }
+    
+//     // Lê sensores
+//     if (currentMillis - state.lastSensorRead >= SENSOR_READ_INTERVAL) {
+//         readSensors();
+//         state.lastSensorRead = currentMillis;
+//     }
+    
+//     // Publica status
+//     if (currentMillis - state.lastHeartbeat >= STATUS_INTERVAL) {
+//         publishStatus();
+//         state.lastHeartbeat = currentMillis;
+//     }
+    
+//     // Verifica timeout de comando
+//     if (state.cafeteiraLigada && 
+//         (currentMillis - state.lastCommandTime > COMMAND_TIMEOUT)) {
+//         handleDesligarCommand();
+//     }
+    
+//     // Mantém conexão MQTT
+//     if (state.mqttConnected) {
+//         mqttClient.loop();
+//     }
+    
+//     // Pisca LED se sistema não estiver pronto
+//     if (!state.systemReady) {
+//         digitalWrite(LED_STATUS, !digitalRead(LED_STATUS));
+//         delay(500);
+//     }
+// }
+
+// void loop() {
+//     if (Serial.available()) {
+//         String command = Serial.readStringUntil('\n');
         
-        if (WiFi.status() != WL_CONNECTED) {
-            Serial.println("WiFi desconectado. Reconectando...");
-            wifiConnected = false;
-            setup_wifi();
-        }
-    }
+//         if (command == "ligar") {
+//             // Lógica para ligar a cafeteira
+//             Serial.println("pong"); // Resposta ao comando
+//         } else if (command == "desligar") {
+//             // Lógica para desligar a cafeteira
+//             Serial.println("pong"); // Resposta ao comando
+//         }
+//     }
+// }
+
+unsigned long lastMillis = 0;
+const long interval = 1000;
+
+void loop() {
+    unsigned long currentMillis = millis();
     
-    // Se WiFi conectado, gerencia MQTT
-    if (wifiConnected) {
-        if (!client.connected()) {
-            reconnectMQTT();
-        }
-        client.loop();
+    if (currentMillis - lastMillis >= interval) {
+        lastMillis = currentMillis;
+        
+        // Tarefas periódicas aqui (se necessário)
     }
-    
-    // Pisca LED se desconectado
-    if (!wifiConnected) {
-        digitalWrite(LED_STATUS, !digitalRead(LED_STATUS));
-        delay(500);
+
+    if (Serial.available()) {
+        String command = Serial.readStringUntil('\n');
+        
+        if (command == "ping") {
+            Serial.println("pong");
+        }
     }
 }
