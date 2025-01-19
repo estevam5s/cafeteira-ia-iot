@@ -11,9 +11,12 @@
             --primary-neon: #00ff88;
             --primary-glow: #00cc6a;
             --accent-pink: #ff3366;
+            --accent-blue: #00a8ff;
             --bg-dark: #0a0a1f;
             --bg-darker: #05051a;
             --text-light: #ffffff;
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
         }
 
         * {
@@ -33,7 +36,7 @@
             line-height: 1.6;
         }
 
-        /* Navbar */
+        /* Enhanced Navbar */
         .navbar {
             position: fixed;
             top: 0;
@@ -46,6 +49,7 @@
             justify-content: space-between;
             align-items: center;
             z-index: 1000;
+            border-bottom: 1px solid var(--glass-border);
         }
 
         .logo {
@@ -53,6 +57,13 @@
             font-size: 1.5rem;
             color: var(--primary-neon);
             text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .logo i {
+            font-size: 1.8rem;
         }
 
         .nav-links {
@@ -64,17 +75,33 @@
         .nav-links a {
             color: var(--text-light);
             text-decoration: none;
-            transition: color 0.3s ease;
+            transition: all 0.3s ease;
+            position: relative;
+            padding: 0.5rem 0;
         }
 
-        .nav-links a:hover {
-            color: var(--primary-neon);
-        }
-
-        .login-btn {
-            padding: 0.5rem 1.5rem;
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 2px;
             background: var(--primary-neon);
-            color: var(--bg-dark);
+            transition: width 0.3s ease;
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .btn {
+            padding: 0.5rem 1.5rem;
             border: none;
             border-radius: 5px;
             cursor: pointer;
@@ -83,12 +110,23 @@
             font-weight: bold;
         }
 
-        .login-btn:hover {
-            background: var(--primary-glow);
-            transform: translateY(-2px);
+        .btn-primary {
+            background: var(--primary-neon);
+            color: var(--bg-dark);
         }
 
-        /* Hero Section */
+        .btn-secondary {
+            background: transparent;
+            border: 2px solid var(--primary-neon);
+            color: var(--primary-neon);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 15px var(--primary-glow);
+        }
+
+        /* Enhanced Hero Section */
         .hero {
             min-height: 100vh;
             display: flex;
@@ -96,186 +134,219 @@
             justify-content: center;
             text-align: center;
             padding: 5rem 1rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
             background: linear-gradient(rgba(10, 10, 31, 0.8), rgba(5, 5, 26, 0.9)),
-                        url('https://images.unsplash.com/photo-1511537190424-bbbab87ac5eb') center/cover;
+                        url('/api/placeholder/1920/1080') center/cover;
+            z-index: -1;
         }
 
         .hero-content {
-            max-width: 800px;
+            max-width: 1000px;
+            position: relative;
         }
 
         .hero h1 {
             font-family: 'Orbitron', sans-serif;
-            font-size: 3.5rem;
-            margin-bottom: 1rem;
+            font-size: 4rem;
+            margin-bottom: 1.5rem;
             background: linear-gradient(45deg, var(--primary-neon), var(--accent-pink));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 20px rgba(0, 255, 136, 0.3);
         }
 
         .hero p {
-            font-size: 1.2rem;
-            margin-bottom: 2rem;
+            font-size: 1.4rem;
+            margin-bottom: 2.5rem;
+            color: rgba(255, 255, 255, 0.9);
         }
 
-        /* About Section */
-        #about {
-            padding: 5rem 1rem;
+        /* Features Section */
+        .features {
+            padding: 8rem 2rem;
             background: rgba(255, 255, 255, 0.02);
         }
 
-        .about-container {
+        .features-container {
             max-width: 1200px;
             margin: 0 auto;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 4rem;
-            align-items: center;
-        }
-
-        .about-text h2 {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 2.5rem;
-            margin-bottom: 1.5rem;
-            color: var(--primary-neon);
         }
 
         .features-grid {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 2rem;
-            margin-top: 2rem;
+            margin-top: 4rem;
         }
 
         .feature-card {
-            background: rgba(255, 255, 255, 0.05);
-            padding: 1.5rem;
-            border-radius: 10px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            transition: transform 0.3s ease;
+            background: var(--glass-bg);
+            padding: 2rem;
+            border-radius: 15px;
+            border: 1px solid var(--glass-border);
+            transition: all 0.3s ease;
+            text-align: center;
         }
 
         .feature-card:hover {
-            transform: translateY(-5px);
+            transform: translateY(-10px);
+            box-shadow: 0 0 30px rgba(0, 255, 136, 0.1);
         }
 
         .feature-card i {
-            font-size: 2rem;
-            color: var(--primary-neon);
-            margin-bottom: 1rem;
-        }
-
-        /* Contact Section */
-        #contact {
-            padding: 5rem 1rem;
-        }
-
-        .contact-container {
-            max-width: 800px;
-            margin: 0 auto;
-            text-align: center;
-        }
-
-        .contact-container h2 {
-            font-family: 'Orbitron', sans-serif;
             font-size: 2.5rem;
-            margin-bottom: 2rem;
             color: var(--primary-neon);
+            margin-bottom: 1.5rem;
         }
 
-        .contact-form {
-            display: grid;
-            gap: 1.5rem;
-            max-width: 600px;
+        .feature-card h3 {
+            font-family: 'Orbitron', sans-serif;
+            margin-bottom: 1rem;
+            color: var(--accent-pink);
+        }
+
+        /* Documentation Section */
+        .documentation {
+            padding: 8rem 2rem;
+            background: var(--bg-darker);
+        }
+
+        .docs-container {
+            max-width: 1200px;
             margin: 0 auto;
         }
 
-        .form-group {
-            text-align: left;
+        .docs-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 3rem;
+            margin-top: 4rem;
         }
 
-        .form-group label {
-            display: block;
-            margin-bottom: 0.5rem;
-        }
-
-        .form-group input,
-        .form-group textarea {
-            width: 100%;
-            padding: 0.8rem;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 5px;
-            color: var(--text-light);
-        }
-
-        .form-group input:focus,
-        .form-group textarea:focus {
-            outline: none;
-            border-color: var(--primary-neon);
-        }
-
-        .submit-btn {
-            padding: 1rem 2rem;
-            background: var(--primary-neon);
-            color: var(--bg-dark);
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: bold;
+        .docs-card {
+            background: var(--glass-bg);
+            padding: 2rem;
+            border-radius: 15px;
+            border: 1px solid var(--glass-border);
             transition: all 0.3s ease;
         }
 
-        .submit-btn:hover {
-            background: var(--primary-glow);
-            transform: translateY(-2px);
+        .docs-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.1);
         }
 
-        /* Footer */
+        .docs-card h3 {
+            font-family: 'Orbitron', sans-serif;
+            color: var(--accent-blue);
+            margin-bottom: 1rem;
+        }
+
+        /* Enhanced Footer */
         footer {
-            padding: 2rem 1rem;
+            padding: 4rem 2rem;
             background: var(--bg-darker);
-            text-align: center;
+            border-top: 1px solid var(--glass-border);
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 3rem;
+        }
+
+        .footer-section h3 {
+            font-family: 'Orbitron', sans-serif;
+            color: var(--primary-neon);
+            margin-bottom: 1.5rem;
+        }
+
+        .footer-links {
+            list-style: none;
+        }
+
+        .footer-links li {
+            margin-bottom: 0.8rem;
+        }
+
+        .footer-links a {
+            color: var(--text-light);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .footer-links a:hover {
+            color: var(--primary-neon);
         }
 
         .social-links {
             display: flex;
-            justify-content: center;
             gap: 1.5rem;
-            margin-bottom: 1rem;
+            margin-top: 1.5rem;
         }
 
         .social-links a {
             color: var(--text-light);
             font-size: 1.5rem;
-            transition: color 0.3s ease;
+            transition: all 0.3s ease;
         }
 
         .social-links a:hover {
             color: var(--primary-neon);
+            transform: translateY(-3px);
+        }
+
+        /* Mobile Menu */
+        .mobile-menu-btn {
+            display: none;
+            font-size: 1.5rem;
+            background: none;
+            border: none;
+            color: var(--text-light);
+            cursor: pointer;
         }
 
         /* Responsiveness */
-        @media (max-width: 768px) {
-            .navbar {
-                padding: 1rem;
+        @media (max-width: 968px) {
+            .mobile-menu-btn {
+                display: block;
             }
 
             .nav-links {
                 display: none;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                background: rgba(10, 10, 31, 0.95);
+                padding: 2rem;
+                flex-direction: column;
+                align-items: center;
+                border-bottom: 1px solid var(--glass-border);
+            }
+
+            .nav-links.active {
+                display: flex;
             }
 
             .hero h1 {
-                font-size: 2.5rem;
+                font-size: 3rem;
             }
 
-            .about-container {
-                grid-template-columns: 1fr;
-                text-align: center;
-            }
-
-            .features-grid {
-                grid-template-columns: 1fr;
+            .hero p {
+                font-size: 1.2rem;
             }
         }
     </style>
@@ -283,129 +354,225 @@
 <body>
     <!-- Navbar -->
     <nav class="navbar">
-        <a href="#" class="logo">CoffeeAI</a>
+        <a href="#" class="logo">
+            <i class="fas fa-coffee"></i>
+            CoffeeAI
+        </a>
+        <button class="mobile-menu-btn">
+            <i class="fas fa-bars"></i>
+        </button>
         <ul class="nav-links">
             <li><a href="#home">Home</a></li>
+            <li><a href="#features">Recursos</a></li>
+            <li><a href="#documentation">Documentação</a></li>
             <li><a href="#about">Sobre</a></li>
             <li><a href="#contact">Contato</a></li>
         </ul>
-        <a href="/auth" class="login-btn">Sistema</a>
+        <div class="nav-buttons">
+            <a href="/docs" class="btn btn-secondary">Docs</a>
+            <a href="/auth" class="btn btn-primary">Sistema</a>
+        </div>
     </nav>
 
     <!-- Hero Section -->
     <section id="home" class="hero">
         <div class="hero-content">
             <h1>CoffeeAI Control</h1>
-            <p>Sistema inteligente de controle para sua cafeteira. Uma solução moderna para um café perfeito.</p>
-            <a href="/auth" class="login-btn">Comece Agora</a>
-        </div>
-    </section>
-
-    <!-- About Section -->
-    <section id="about">
-        <div class="about-container">
-            <div class="about-text">
-                <h2>Sobre o Projeto</h2>
-                <p>O CoffeeAI é um sistema inovador que combina IoT e Inteligência Artificial para transformar sua experiência com café. Controle sua cafeteira remotamente, monitore temperaturas em tempo real e receba recomendações personalizadas.</p>
-                
-                <div class="features-grid">
-                    <div class="feature-card">
-                        <i class="fas fa-coffee"></i>
-                        <h3>Controle Remoto</h3>
-                        <p>Controle sua cafeteira de qualquer lugar através do nosso sistema web.</p>
-                    </div>
-                    <div class="feature-card">
-                        <i class="fas fa-thermometer-half"></i>
-                        <h3>Monitoramento Real</h3>
-                        <p>Acompanhe temperatura e status em tempo real.</p>
-                    </div>
-                    <div class="feature-card">
-                        <i class="fas fa-brain"></i>
-                        <h3>IA Assistente</h3>
-                        <p>Receba recomendações personalizadas do nosso assistente virtual.</p>
-                    </div>
-                    <div class="feature-card">
-                        <i class="fas fa-shield-alt"></i>
-                        <h3>Segurança</h3>
-                        <p>Sistema seguro com autenticação e proteção de dados.</p>
-                    </div>
-                </div>
-            </div>
-            <div class="about-image">
-                <img src="https://via.placeholder.com/500" alt="CoffeeAI System">
+            <p>A próxima geração em automação de cafeteiras. Controle inteligente, monitoramento em tempo real e experiência personalizada.</p>
+            <div class="nav-buttons">
+                <a href="/demo" class="btn btn-secondary">Ver Demo</a>
+                <a href="/auth" class="btn btn-primary">Começar Agora</a>
             </div>
         </div>
     </section>
 
-    <!-- Contact Section -->
-    <section id="contact">
-        <div class="contact-container">
-            <h2>Entre em Contato</h2>
-            <form class="contact-form" onsubmit="return handleContact(event)">
-                <div class="form-group">
-                    <label for="name">Nome</label>
-                    <input type="text" id="name" required>
+    <!-- Features Section -->
+    <section id="features" class="features">
+        <div class="features-container">
+            <h2>Recursos Avançados</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <i class="fas fa-robot"></i>
+                    <h3>IA Avançada</h3>
+                    <p>Sistema inteligente que aprende suas preferências e otimiza a preparação do café.</p>
                 </div>
-                <div class="form-group">
-                    <label for="email">Email</label>
-                    <input type="email" id="email" required>
+                <div class="feature-card">
+                    <i class="fas fa-mobile-alt"></i>
+                    <h3>Controle Remoto</h3>
+                    <p>Acesse e controle sua cafeteira de qualquer lugar através do nosso aplicativo.</p>
                 </div>
-                <div class="form-group">
-                    <label for="message">Mensagem</label>
-                    <textarea id="message" rows="5" required></textarea>
+                <div class="feature-card">
+                    <i class="fas fa-chart-line"></i>
+                    <h3>Analytics</h3>
+                    <p>Acompanhe estatísticas de uso e receba insights personalizados.</p>
                 </div>
-                <button type="submit" class="submit-btn">Enviar Mensagem</button>
-            </form>
+                <div class="feature-card">
+                    <i class="fas fa-shield-alt"></i>
+                    <h3>Segurança</h3>
+                    <p>Proteção avançada de dados e controle de acesso seguro.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Documentation Section -->
+    <section id="documentation" class="documentation">
+        <div class="docs-container">
+            <h2>Documentação</h2>
+            <div class="docs-grid">
+                <div class="docs-card">
+                    <h3>Guia de Início</h3>
+                    <p>Aprenda como configurar e começar a usar o CoffeeAI Control.</p>
+                    <a href="/docs/getting-started" class="btn btn-secondary">Ler Mais</a>
+                </div>
+                <div class="docs-card">
+                    <h3>API Reference</h3>
+                    <p>Documentação completa da API para desenvolvedores.</p>
+                    <a href="/docs/api" class="btn btn-secondary">Ver Docs</a>
+                </div>
+                <div class="docs-card">
+                    <h3>Tutoriais</h3>
+                    <p>Exemplos práticos e guias passo a passo.</p>
+                    <a href="/docs/tutorials" class="btn btn-secondary">Explorar</a>
+                </div>
+            </div>
         </div>
     </section>
 
     <!-- Footer -->
     <footer>
-        <div class="social-links">
-            <a href="#"><i class="fab fa-github"></i></a>
-            <a href="#"><i class="fab fa-linkedin"></i></a>
-            <a href="#"><i class="fab fa-twitter"></i></a>
-            <a href="#"><i class="fab fa-instagram"></i></a>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>CoffeeAI</h3>
+                <p>Transformando a experiência do café através da tecnologia.</p>
+                <div class="social-links">
+                    <a href="#"><i class="fab fa-github"></i></a>
+                    <a href="#"><i class="fab fa-linkedin"></i></a>
+                    <a href="#"><i class="fab fa-twitter"></i></a>
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                </div>
+            </div>
+            <div class="footer-section">
+                <h3>Links Rápidos</h3>
+                <ul class="footer-links">
+                    <li><a href="#features">Recursos</a></li>
+                    <li><a href="#documentation">Documentação</a></li>
+                    <li><a href="/pricing">Preços</a></li>
+                    <li><a href="/blog">Blog</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>Documentação</h3>
+                <ul class="footer-links">
+                    <li><a href="/docs/getting-started">Guia de Início</a></li>
+                    <li><a href="/docs/api">API Reference</a></li>
+                    <li><a href="/docs/tutorials">Tutoriais</a></li>
+                    <li><a href="/docs/faq">FAQ</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>Contato</h3>
+                <ul class="footer-links">
+                    <li><a href="mailto:suporte@coffeeai.com">suporte@coffeeai.com</a></li>
+                    <li><a href="/support">Central de Ajuda</a></li>
+                    <li><a href="/contact">Fale Conosco</a></li>
+                </ul>
+            </div>
         </div>
-        <p>&copy; 2025 CoffeeAI Control. Todos os direitos reservados.</p>
+        <div style="text-align: center; margin-top: 3rem; padding-top: 2rem; border-top: 1px solid var(--glass-border);">
+            <p>&copy; 2025 CoffeeAI Control. Todos os direitos reservados.</p>
+        </div>
     </footer>
 
     <script>
-        // Function to handle contact form submission
-        async function handleContact(event) {
+        // Mobile menu toggle
+        const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
+        const navLinks = document.querySelector('.nav-links');
+
+        mobileMenuBtn.addEventListener('click', () => {
+            navLinks.classList.toggle('active');
+        });
+
+        // Smooth scroll for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                    // Close mobile menu if open
+                    navLinks.classList.remove('active');
+                }
+            });
+        });
+
+        // Intersection Observer for scroll animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: "0px 0px -50px 0px"
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('fade-in');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, observerOptions);
+
+        // Observe all feature cards and documentation cards
+        document.querySelectorAll('.feature-card, .docs-card').forEach(card => {
+            observer.observe(card);
+        });
+
+        // Form submission handler
+        const handleContact = async (event) => {
             event.preventDefault();
             
-            const name = document.getElementById('name').value;
-            const email = document.getElementById('email').value;
-            const message = document.getElementById('message').value;
+            const formData = new FormData(event.target);
+            const data = Object.fromEntries(formData.entries());
 
             try {
-                const response = await fetch('/contact', {
+                const response = await fetch('/api/contact', {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ name, email, message })
+                    body: JSON.stringify(data)
                 });
 
                 if (response.ok) {
                     alert('Mensagem enviada com sucesso!');
                     event.target.reset();
                 } else {
-                    alert('Erro ao enviar mensagem. Tente novamente.');
+                    throw new Error('Erro ao enviar mensagem');
                 }
             } catch (error) {
                 console.error('Erro:', error);
-                alert('Erro ao enviar mensagem. Tente novamente.');
+                alert('Erro ao enviar mensagem. Por favor, tente novamente.');
             }
-        }
+        };
 
-        // Smooth scroll for navigation links
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                document.querySelector(this.getAttribute('href')).scrollIntoView({
-                    behavior: 'smooth'
+        // Add scroll-based navbar transparency
+        window.addEventListener('scroll', () => {
+            const navbar = document.querySelector('.navbar');
+            if (window.scrollY > 100) {
+                navbar.style.background = 'rgba(10, 10, 31, 0.98)';
+            } else {
+                navbar.style.background = 'rgba(10, 10, 31, 0.95)';
+            }
+        });
+
+        // Add loading animation for images
+        document.addEventListener('DOMContentLoaded', () => {
+            const images = document.querySelectorAll('img');
+            images.forEach(img => {
+                img.addEventListener('load', () => {
+                    img.classList.add('loaded');
                 });
             });
         });
