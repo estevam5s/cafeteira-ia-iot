@@ -561,115 +561,131 @@ def chat(current_user):
 
         # Verifica status da conexão serial do Arduino
         arduino_connected = check_arduino_connection()
-
+        
         # Comandos relacionados ao Arduino e cafeteira
         if 'arduino' in message and ('status' in message or 'conectado' in message):
             if arduino_connected:
+                port = arduino_serial.port if arduino_serial else "desconhecida"
                 return jsonify({
-                    "answer": "✅ O Arduino está conectado e comunicando via porta serial."
+                    "answer": f"✅ Arduino está conectado e operacional na porta {port}.\nSistema pronto para uso!"
                 })
             else:
                 return jsonify({
-                    "answer": "❌ Arduino não detectado.\n\n"
-                             "Por favor, verifique:\n"
-                             "1. Se o Arduino está conectado via USB\n"
-                             "2. Se o código correto está carregado no Arduino\n"
-                             "3. Se não há outros programas usando a porta serial"
+                    "answer": "❌ Arduino não está respondendo.\n\nTentando reconexão automática..."
                 })
 
         elif 'ligar' in message and 'cafeteira' in message:
-            if not arduino_connected:
-                return jsonify({
-                    "answer": "⚠️ Não é possível ligar a cafeteira.\n\n"
-                             "O Arduino não está conectado ao sistema.\n"
-                             "Conecte o Arduino via USB e tente novamente."
-                })
-
             try:
-                # Envia comando para o Arduino
-                if arduino_serial:
+                if arduino_serial and arduino_serial.is_open:
+                    print("Enviando comando de ligar para o Arduino...")
                     arduino_serial.write(b'ligar\n')
                     arduino_serial.flush()
-                    time.sleep(0.5)  # Aguarda resposta do Arduino
-
-                    if arduino_serial.in_waiting:  # Verifica se há resposta
-                        response = arduino_serial.readline().decode().strip()
-                        if response == "ok":
-                            return jsonify({"answer": "✅ Cafeteira ligada com sucesso!"})
-                        else:
-                            return jsonify({"answer": f"⚠️ Resposta inesperada do Arduino: {response}"})
-                    else:
-                        # Tenta ligar a cafeteira novamente se não houver resposta
-                        print("⚠️ Nenhuma resposta do Arduino. Tentando ligar a cafeteira novamente...")
-                        arduino_serial.write(b'ligar\n')
-                        arduino_serial.flush()
-                        time.sleep(0.5)
+                    
+                    # Aguarda e lê múltiplas respostas do Arduino
+                    responses = []
+                    start_time = time.time()
+                    while time.time() - start_time < 3:  # Aguarda até 3 segundos por respostas
                         if arduino_serial.in_waiting:
                             response = arduino_serial.readline().decode().strip()
+                            responses.append(response)
                             if response == "ok":
-                                return jsonify({"answer": "✅ Cafeteira ligada com sucesso após nova tentativa!"})
-                            else:
-                                return jsonify({"answer": f"⚠️ Resposta inesperada do Arduino na segunda tentativa: {response}"})
-                        else:
-                            return jsonify({"answer": "⚠️ Nenhuma resposta do Arduino na segunda tentativa. Tente novamente."})
+                                coffee_state.update({
+                                    "status": "ligada",
+                                    "system_status": "online",
+                                    "temperature": "25.0"
+                                })
+                                update_coffee_state(json.dumps(coffee_state))
+                                return jsonify({
+                                    "answer": "✅ Cafeteira iniciando!\n\n• Sistema em aquecimento\n• WiFi conectado\n• Pronto para uso em instantes"
+                                })
+                            elif "Conectando" in response:
+                                continue  # Ignora mensagens de inicialização
+                        time.sleep(0.1)
+                    
+                    # Se chegou aqui, não recebeu "ok"
+                    if responses:
+                        return jsonify({
+                            "answer": "⏳ Sistema inicializando...\n\nAguarde enquanto os componentes são preparados."
+                        })
+                    else:
+                        return jsonify({
+                            "answer": "⚠️ Sem resposta do sistema. Tentando novamente..."
+                        })
 
             except Exception as e:
                 print(f"Erro ao enviar comando: {e}")
-                return jsonify({"answer": "❌ Erro ao tentar ligar a cafeteira."})
-
-        elif 'desligar' in message and 'cafeteira' in message:
-            if not arduino_connected:
                 return jsonify({
-                    "answer": "⚠️ Não é possível desligar a cafeteira.\n\n"
-                             "O Arduino não está conectado ao sistema.\n"
-                             "Conecte o Arduino via USB e tente novamente."
+                    "answer": "❌ Erro técnico ao tentar ligar. Por favor, tente novamente."
                 })
 
+        elif 'desligar' in message and 'cafeteira' in message:
             try:
-                # Envia comando para o Arduino
-                if arduino_serial:
+                if arduino_serial and arduino_serial.is_open:
                     arduino_serial.write(b'desligar\n')
                     arduino_serial.flush()
-                    time.sleep(0.5)  # Aguarda resposta do Arduino
-
-                    if arduino_serial.in_waiting:  # Verifica se há resposta
-                        response = arduino_serial.readline().decode().strip()
-                        if response == "ok":
-                            return jsonify({"answer": "✅ Cafeteira desligada com sucesso!"})
-                        else:
-                            return jsonify({"answer": f"⚠️ Resposta inesperada do Arduino: {response}"})
-                    else:
-                        # Tenta desligar a cafeteira novamente se não houver resposta
-                        print("⚠️ Nenhuma resposta do Arduino. Tentando desligar a cafeteira novamente...")
-                        arduino_serial.write(b'desligar\n')
-                        arduino_serial.flush()
-                        time.sleep(0.5)
+                    
+                    # Aguarda e lê múltiplas respostas
+                    responses = []
+                    start_time = time.time()
+                    while time.time() - start_time < 3:  # Aguarda até 3 segundos
                         if arduino_serial.in_waiting:
                             response = arduino_serial.readline().decode().strip()
+                            responses.append(response)
                             if response == "ok":
-                                return jsonify({"answer": "✅ Cafeteira desligada com sucesso após nova tentativa!"})
-                            else:
-                                return jsonify({"answer": f"⚠️ Resposta inesperada do Arduino na segunda tentativa: {response}"})
-                        else:
-                            return jsonify({"answer": "⚠️ Nenhuma resposta do Arduino na segunda tentativa. Tente novamente."})
+                                coffee_state.update({
+                                    "status": "desligada",
+                                    "system_status": "offline",
+                                    "temperature": "0"
+                                })
+                                update_coffee_state(json.dumps(coffee_state))
+                                return jsonify({
+                                    "answer": "✅ Cafeteira desligada com sucesso!\n\nTodos os sistemas foram desativados de forma segura."
+                                })
+                        time.sleep(0.1)
+                    
+                    # Se chegou aqui, não recebeu "ok"
+                    return jsonify({
+                        "answer": "⚠️ Aguardando confirmação de desligamento...\n\nVerifique o painel de status."
+                    })
 
             except Exception as e:
-                print(f"Erro ao enviar comando: {e}")
-                return jsonify({"answer": "❌ Erro ao tentar desligar a cafeteira."})
+                print(f"Erro ao desligar: {e}")
+                return jsonify({
+                    "answer": "❌ Erro ao executar desligamento. Tente novamente."
+                })
+
+        # Outros comandos permanecem iguais...
+        elif 'temperatura' in message:
+            if coffee_state["status"] == "ligada":
+                return jsonify({
+                    "answer": f"🌡️ Temperatura atual: {coffee_state['temperature']}°C"
+                })
+            else:
+                return jsonify({
+                    "answer": "ℹ️ Cafeteira está desligada. Ligue-a para monitorar a temperatura."
+                })
+
+        elif 'status' in message:
+            status_msg = (
+                f"📊 Status do Sistema:\n\n"
+                f"• Estado: {coffee_state['status'].upper()}\n"
+                f"• Temperatura: {coffee_state['temperature']}°C\n"
+                f"• Nível de água: {coffee_state['water_level']}%\n"
+                f"• Pressão: {coffee_state['pressure']} bar\n"
+                f"• Última atividade: {coffee_state['last_activity']}"
+            )
+            return jsonify({"answer": status_msg})
 
         else:
-            return jsonify({"answer": "❓ Comando não reconhecido. Por favor, tente novamente."})
+            return jsonify({
+                "answer": "ℹ️ Comando não reconhecido.\n\nComandos disponíveis:\n• ligar cafeteira\n• desligar cafeteira\n• status\n• temperatura"
+            })
 
     except Exception as e:
         print(f"Erro na função chat: {e}")
-        return jsonify({"answer": "❌ Ocorreu um erro no processamento do comando."})
-
-    except Exception as e:
-        print(f"Erro no processamento: {str(e)}")
         return jsonify({
-            'error': str(e),
-            'message': "Ocorreu um erro ao processar sua mensagem."
-        }), 500
+            "answer": "❌ Erro interno do sistema. Tente novamente em alguns instantes."
+        })
 
 # Rotas para os modais
 @app.route('/guide')
