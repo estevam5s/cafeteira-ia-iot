@@ -1,0 +1,1779 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CoffeeAI Control - Sistema</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700&family=Rajdhani:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --primary-neon: #00ff88;
+        --primary-glow: #00cc6a;
+        --accent-pink: #ff3366;
+        --bg-dark: #0a0a1f;
+        --bg-darker: #05051a;
+        --text-light: #ffffff;
+        --text-dim: rgba(255, 255, 255, 0.7);
+        --glass-bg: rgba(255, 255, 255, 0.05);
+        --glass-border: rgba(255, 255, 255, 0.1);
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: "Rajdhani", sans-serif;
+      }
+
+      body {
+        background: linear-gradient(135deg, var(--bg-dark), var(--bg-darker));
+        color: var(--text-light);
+        min-height: 100vh;
+      }
+
+      .container {
+        display: grid;
+        grid-template-areas:
+          "header header"
+          "nav nav"
+          "sidebar main";
+        grid-template-columns: 300px 1fr;
+        gap: 1.5rem;
+        padding: 1.5rem;
+        max-width: 1600px;
+        margin: 0 auto;
+      }
+
+      .header {
+        grid-area: header;
+        display: flex;
+        flex-direction: column; /* Empilha os elementos verticalmente */
+        justify-content: center;
+        align-items: center;
+        padding: 2rem;
+        background: var(--glass-bg);
+        border-radius: 15px;
+        border: 1px solid var(--glass-border);
+        text-align: center;
+      }
+
+      .header h1 {
+        font-family: "Orbitron", sans-serif;
+        font-size: 4rem;
+        margin-bottom: 0.5rem; /* Diminui o espaço entre o título e a informação do usuário */
+        color: var(--primary-neon);
+        text-transform: uppercase;
+        /* -webkit-background-clip: text; */ /* Faz o fundo do gradiente aparecer apenas no texto */
+        letter-spacing: 2px;
+        background: transparent;
+        -webkit-text-fill-color: var(--primary-neon);
+      }
+
+      .user-info {
+        display: flex;
+        flex-direction: column; /* Organiza o conteúdo em coluna */
+        align-items: center; /* Alinha os itens ao centro */
+        gap: 0.5rem; /* Adiciona um pequeno espaço entre o nome e o botão */
+        margin-top: 0.5rem;
+      }
+
+      .user-info span {
+        font-size: 1.1rem;
+        color: var(--text-light);
+      }
+
+      .user-info button {
+        padding: 0.5rem 1rem;
+        background: var(--glass-bg);
+        border: 1px solid var(--glass-border);
+        border-radius: 8px;
+        color: var(--text-light);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .user-info button:hover {
+        background: var(--primary-neon);
+        color: var(--bg-dark);
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 255, 136, 0.3);
+      }
+      /* Navigation */
+      .nav-container {
+        grid-area: nav;
+        background: var(--glass-bg);
+        padding: 1rem;
+        border-radius: 15px;
+        border: 1px solid var(--glass-border);
+      }
+
+      .nav-menu {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+        list-style: none;
+        flex-wrap: wrap;
+      }
+
+      .nav-item a {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.8rem 1.2rem;
+        color: var(--text-light);
+        text-decoration: none;
+        background: rgba(0, 0, 0, 0.2);
+        border-radius: 8px;
+        transition: all 0.3s ease;
+      }
+
+      .nav-item a:hover {
+        background: var(--primary-neon);
+        color: var(--bg-dark);
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 255, 136, 0.3);
+      }
+
+      /* Sidebar */
+      .sidebar {
+        grid-area: sidebar;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+      }
+
+      .control-panel {
+        background: var(--glass-bg);
+        padding: 1.5rem;
+        border-radius: 15px;
+        border: 1px solid var(--glass-border);
+      }
+
+      .control-panel h2 {
+        font-family: "Orbitron", sans-serif;
+        color: var(--primary-neon);
+        margin-bottom: 1rem;
+      }
+
+      .control-button {
+        width: 100%;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        border: none;
+        border-radius: 10px;
+        font-family: "Orbitron", sans-serif;
+        font-weight: 600;
+        text-transform: uppercase;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+      }
+
+      .power-on {
+        background: var(--primary-neon);
+        color: var(--bg-dark);
+      }
+
+      .power-off {
+        background: var(--accent-pink);
+        color: var(--text-light);
+      }
+
+      .control-button:hover {
+        transform: translateY(-2px);
+        filter: brightness(1.1);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+      }
+
+      /* Status Panel */
+      .status-panel {
+        background: var(--glass-bg);
+        padding: 1.5rem;
+        border-radius: 15px;
+        border: 1px solid var(--glass-border);
+      }
+
+      .status-item {
+        padding: 1rem;
+        margin-bottom: 1rem;
+        background: rgba(0, 0, 0, 0.2);
+        border-radius: 10px;
+        border: 1px solid var(--glass-border);
+      }
+
+      .status-indicator {
+        display: inline-block;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        margin-right: 10px;
+      }
+
+      .status-online {
+        background: var(--primary-neon);
+        box-shadow: 0 0 10px var(--primary-neon);
+      }
+
+      .status-offline {
+        background: var(--accent-pink);
+        box-shadow: 0 0 10px var(--accent-pink);
+      }
+
+      .temperature-gauge {
+        margin-top: 0.5rem;
+        height: 4px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 2px;
+        overflow: hidden;
+      }
+
+      .temperature-fill {
+        height: 100%;
+        background: linear-gradient(
+          90deg,
+          var(--primary-neon),
+          var(--accent-pink)
+        );
+        transition: width 0.5s ease;
+      }
+
+      /* Main Content */
+      .main-content {
+        grid-area: main;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+      }
+
+      /* Ajuste no container principal do chat */
+      .chat-container {
+        background: var(--glass-bg);
+        border-radius: 20px;
+        border: 1px solid var(--glass-border);
+        display: flex;
+        flex-direction: column;
+        padding: 1.5rem;
+        height: calc(100vh - 260px);
+        min-height: 589px;
+        position: relative; /* Adiciona posição relativa para referência */
+      }
+
+      /* Ajuste na área de mensagens */
+      .messages {
+        flex-grow: 1;
+        overflow-y: auto;
+        padding: 1rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        background: rgba(0, 0, 0, 0.2);
+        border-radius: 10px;
+        margin-bottom: 80px; /* Espaço para o input-container */
+        height: calc(100% - 80px);
+      }
+
+      .message {
+        padding: 1rem;
+        border-radius: 10px;
+        max-width: 80%;
+        animation: slideIn 0.3s ease;
+      }
+
+      .user-message {
+        background: rgba(0, 255, 136, 0.1);
+        border: 1px solid rgba(0, 255, 136, 0.2);
+        align-self: flex-end;
+        margin-left: 20%;
+      }
+
+      .bot-message {
+        background: rgba(0, 136, 255, 0.1);
+        border: 1px solid rgba(0, 136, 255, 0.2);
+        align-self: flex-start;
+        margin-right: 20%;
+      }
+
+      /* Ajuste no container de input */
+      .input-container {
+        display: flex;
+        gap: 1rem;
+        padding: 1rem;
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: 15px;
+        position: absolute; /* Posição absoluta */
+        bottom: 1.5rem; /* Alinhado com o padding do container */
+        left: 1.5rem;
+        right: 1.5rem;
+        width: calc(100% - 3rem); /* Largura considerando o padding */
+      }
+
+      /* Ajuste para mensagens individuais */
+      .message {
+        padding: 1rem;
+        border-radius: 10px;
+        max-width: 80%;
+        animation: slideIn 0.3s ease;
+        word-wrap: break-word; /* Garante que mensagens longas quebrem corretamente */
+      }
+
+      /* Estilização da barra de rolagem para melhor visual */
+      .messages::-webkit-scrollbar {
+        width: 8px;
+      }
+
+      .messages::-webkit-scrollbar-track {
+        background: rgba(0, 0, 0, 0.1);
+        border-radius: 4px;
+      }
+
+      .messages::-webkit-scrollbar-thumb {
+        background: var(--primary-neon);
+        border-radius: 4px;
+      }
+
+      .messages::-webkit-scrollbar-thumb:hover {
+        background: var(--primary-glow);
+      }
+
+      .chat-input {
+        flex-grow: 1;
+        padding: 1rem;
+        background: rgba(255, 255, 255, 0.1);
+        border: none;
+        border-radius: 10px;
+        color: var(--text-light);
+        font-size: 1rem;
+      }
+
+      .chat-input:focus {
+        outline: none;
+        background: rgba(255, 255, 255, 0.15);
+        box-shadow: 0 0 0 2px var(--primary-neon);
+      }
+
+      .send-button {
+        padding: 1rem 2rem;
+        border: none;
+        border-radius: 10px;
+        background: var(--primary-neon);
+        color: var(--bg-dark);
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      .send-button:hover:not(:disabled) {
+        transform: translateY(-2px);
+        filter: brightness(1.1);
+        box-shadow: 0 5px 15px rgba(0, 255, 136, 0.3);
+      }
+
+      .send-button:disabled {
+        background: #666;
+        cursor: not-allowed;
+      }
+
+      /* Animations */
+      @keyframes slideIn {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      /* Responsiveness */
+      @media (max-width: 1024px) {
+        .container {
+          grid-template-columns: 1fr;
+          grid-template-areas:
+            "header"
+            "nav"
+            "sidebar"
+            "main";
+        }
+
+        .nav-menu {
+          flex-direction: column;
+        }
+      }
+
+      @media (max-width: 768px) {
+        .header {
+          flex-direction: column;
+          gap: 1rem;
+          text-align: center;
+          padding: 1rem;
+        }
+
+        .header-buttons {
+          display: flex;
+          align-items: center;
+          gap: 1.5rem;
+        }
+
+        .button-divider {
+          height: 24px;
+          width: 1px;
+          background: var(--glass-border);
+        }
+
+        .user-info {
+          display: flex;
+          align-items: center;
+          gap: 1rem;
+        }
+      }
+
+      /* Modal Styles */
+      .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        backdrop-filter: blur(5px);
+        z-index: 1000;
+        animation: fadeIn 0.3s ease;
+      }
+
+      .modal-content {
+        position: relative;
+        background: var(--bg-dark);
+        border: 1px solid var(--glass-border);
+        border-radius: 20px;
+        width: 90%;
+        max-width: 1200px;
+        max-height: 90vh;
+        margin: 2rem auto;
+        padding: 2rem;
+        overflow-y: auto;
+        animation: slideUp 0.3s ease;
+        box-shadow: 0 0 30px rgba(0, 255, 136, 0.2);
+      }
+
+      .modal-close {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        background: none;
+        border: none;
+        color: var(--text-light);
+        font-size: 1.5rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      .modal-close:hover {
+        color: var(--accent-pink);
+        transform: rotate(90deg);
+      }
+
+      .modal-header {
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid var(--glass-border);
+      }
+
+      .modal-header h2 {
+        font-family: "Orbitron", sans-serif;
+        color: var(--primary-neon);
+        font-size: 1.8rem;
+      }
+
+      /* Tab Styles */
+      .tabs {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 2rem;
+        flex-wrap: wrap;
+      }
+
+      .tab-button {
+        padding: 0.8rem 1.5rem;
+        background: var(--glass-bg);
+        border: 1px solid var(--glass-border);
+        border-radius: 8px;
+        color: var(--text-light);
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      .tab-button.active {
+        background: var(--primary-neon);
+        color: var(--bg-dark);
+        border-color: var(--primary-neon);
+        box-shadow: 0 0 15px rgba(0, 255, 136, 0.3);
+      }
+
+      .tab-button:hover:not(.active) {
+        background: var(--glass-border);
+        transform: translateY(-2px);
+      }
+
+      /* Cards Grid */
+      .cards-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+        margin-top: 1.5rem;
+      }
+
+      .card {
+        background: var(--glass-bg);
+        border: 1px solid var(--glass-border);
+        border-radius: 15px;
+        padding: 1.5rem;
+        transition: all 0.3s ease;
+      }
+
+      .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 5px 15px rgba(0, 255, 136, 0.2);
+      }
+
+      .card-title {
+        color: var(--primary-neon);
+        font-family: "Orbitron", sans-serif;
+        margin-bottom: 1rem;
+      }
+
+      /* Badge Styles */
+      .badge {
+        display: inline-block;
+        padding: 0.3rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        margin-top: 1rem;
+      }
+
+      .badge-success {
+        background: var(--primary-neon);
+        color: var(--bg-dark);
+      }
+
+      .badge-warning {
+        background: var(--accent-pink);
+        color: var(--text-light);
+      }
+
+      /* Modal Animations */
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+
+      @keyframes slideUp {
+        from {
+          opacity: 0;
+          transform: translateY(50px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      /* Responsiveness for Modals */
+      @media (max-width: 768px) {
+        .modal-content {
+          width: 95%;
+          margin: 1rem auto;
+          padding: 1rem;
+        }
+
+        .cards-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      /* Estilos adicionais para os novos componentes */
+      .endpoint {
+        background: rgba(0, 0, 0, 0.2);
+        padding: 1rem;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+      }
+
+      .endpoint code {
+        display: block;
+        background: rgba(0, 255, 136, 0.1);
+        padding: 0.5rem;
+        border-radius: 4px;
+        margin-bottom: 0.5rem;
+        font-family: monospace;
+      }
+
+      .api-endpoints {
+        margin-top: 1rem;
+      }
+
+      .maintenance-content {
+        margin-top: 1rem;
+      }
+
+      .badge {
+        display: inline-block;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.875rem;
+        margin-top: 0.5rem;
+      }
+
+      .badge-warning {
+        background-color: var(--accent-pink);
+        color: var(--text-light);
+      }
+
+      .badge-success {
+        background-color: var(--primary-neon);
+        color: var(--bg-dark);
+      }
+
+      .controller-content,
+      .sensor-content,
+      .actuator-content {
+        margin-top: 1rem;
+      }
+
+      .controller-content h4,
+      .sensor-content h4,
+      .actuator-content h4 {
+        color: var(--primary-neon);
+        margin-bottom: 0.5rem;
+        font-family: "Orbitron", sans-serif;
+      }
+
+      .controller-content ul,
+      .sensor-content ul,
+      .actuator-content ul {
+        list-style: none;
+        padding-left: 0;
+      }
+
+      .controller-content li,
+      .sensor-content li,
+      .actuator-content li {
+        padding: 0.5rem 0;
+        border-bottom: 1px solid var(--glass-border);
+      }
+
+      .controller-content li:last-child,
+      .sensor-content li:last-child,
+      .actuator-content li:last-child {
+        border-bottom: none;
+      }
+
+      .card strong {
+        color: var(--primary-neon);
+      }
+
+      .control-button:disabled {
+        cursor: not-allowed;
+        opacity: 0.5;
+      }
+
+      .control-button:disabled:hover {
+        transform: none;
+        box-shadow: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header class="header">
+        <h1>CoffeeAI Control</h1>
+        <div class="header-buttons">
+          <div class="user-info">
+            <span>Bem-vindo, {{ user.name }}</span>
+          </div>
+          <div class="button-divider"></div>
+        </div>
+      </header>
+
+      <nav class="nav-container">
+        <ul class="nav-menu">
+          <li class="nav-item">
+            <a href="#" onclick="showSection('guide')">
+              <i class="fas fa-book"></i> Guia de Uso
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#" onclick="showSection('recipes')">
+              <i class="fas fa-coffee"></i> Receitas
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#" onclick="showSection('brew-methods')">
+              <i class="fas fa-mortar-pestle"></i> Modos de Preparo
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#" onclick="showSection('equipment')">
+              <i class="fas fa-microchip"></i> Equipamentos
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#" onclick="showSection('maintenance')">
+              <i class="fas fa-tools"></i> Manutenção
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#" onclick="showSection('docs')">
+              <i class="fas fa-file-code"></i> Documentação
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#" onclick="showSection('features')">
+              <i class="fas fa-star"></i> Funcionalidades
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#" onclick="voltarHome()">
+              <i class="fas fa-home"></i> Home
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#" onclick="handleLogout()">
+              <i class="fas fa-sign-out-alt"></i> Sair
+            </a>
+          </li>
+        </ul>
+      </nav>
+
+      <aside class="sidebar">
+        <div class="control-panel">
+          <h2>Controles</h2>
+          <button
+            onclick="controlCoffee('ligar')"
+            class="control-button power-on"
+          >
+            <i class="fas fa-power-off"></i> Ligar Cafeteira
+          </button>
+          <button
+            onclick="controlCoffee('desligar')"
+            class="control-button power-off"
+          >
+            <i class="fas fa-power-off"></i> Desligar Cafeteira
+          </button>
+        </div>
+
+        <div class="status-panel">
+          <div class="status-item">
+            <span class="status-indicator" id="arduino-status"></span>
+            <span id="arduino-status-text">Arduino: --</span>
+          </div>
+          <div class="status-item">
+            <span class="status-indicator" id="system-status"></span>
+            <span id="system-status-text">Sistema: --</span>
+          </div>
+          <div class="status-item">
+            <span
+              class="status-indicator status-offline"
+              id="coffee-status"
+            ></span>
+            <span id="coffee-status-text">Cafeteira: Desligada</span>
+            <div id="coffee-temperature"></div>
+            <div class="temperature-gauge">
+              <div
+                class="temperature-fill"
+                id="temperature-bar"
+                style="width: 0%"
+              ></div>
+            </div>
+          </div>
+          <div class="status-item">
+            <span id="lastActivity">Última Atividade: --:--</span>
+          </div>
+        </div>
+      </aside>
+
+      <main class="main-content">
+        <div class="chat-container">
+          <div class="messages" id="messages">
+            <div class="message bot-message">
+              Olá! Sou o assistente da sua cafeteira inteligente. Como posso
+              ajudar?
+            </div>
+          </div>
+          <div class="input-container">
+            <input
+              type="text"
+              id="userInput"
+              class="chat-input"
+              placeholder="Digite sua mensagem..."
+            />
+            <button onclick="sendMessage()" id="sendButton" class="send-button">
+              <i class="fas fa-paper-plane"></i> Enviar
+            </button>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <!-- Modal do Guia -->
+    <div id="guideModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 class="modal-title">Guia de Uso</h2>
+          <button class="modal-close" onclick="closeModal('guideModal')">
+            &times;
+          </button>
+        </div>
+        <div id="guideContent"></div>
+      </div>
+    </div>
+
+    <!-- Modal de Receitas -->
+    <div id="recipesModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 class="modal-title">Receitas de Café</h2>
+          <button class="modal-close" onclick="closeModal('recipesModal')">
+            &times;
+          </button>
+        </div>
+        <div class="tabs" id="recipesTabs">
+          <button
+            class="tab-button active"
+            onclick="showRecipeTab('tradicional')"
+          >
+            Tradicionais
+          </button>
+          <button class="tab-button" onclick="showRecipeTab('especiais')">
+            Especiais
+          </button>
+          <button class="tab-button" onclick="showRecipeTab('gelados')">
+            Gelados
+          </button>
+        </div>
+        <div id="recipesContent"></div>
+      </div>
+    </div>
+
+    <!-- Modal de Modos de Preparo -->
+    <div id="brewingModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 class="modal-title">Modos de Preparo</h2>
+          <button class="modal-close" onclick="closeModal('brewingModal')">
+            &times;
+          </button>
+        </div>
+        <div id="brewingContent"></div>
+      </div>
+    </div>
+
+    <!-- Modal de Equipamentos -->
+    <!-- No seu HTML, encontre a seção de Modal de Equipamentos e substitua por: -->
+
+    <!-- Modal de Equipamentos -->
+    <div id="equipmentModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 class="modal-title">Equipamentos do Sistema</h2>
+          <button class="modal-close" onclick="closeModal('equipmentModal')">
+            &times;
+          </button>
+        </div>
+        <div class="tabs">
+          <button
+            class="tab-button active"
+            onclick="showEquipmentTab('controllers')"
+          >
+            <i class="fas fa-microchip"></i> Controladores
+          </button>
+          <button class="tab-button" onclick="showEquipmentTab('sensors')">
+            <i class="fas fa-thermometer-half"></i> Sensores
+          </button>
+          <button class="tab-button" onclick="showEquipmentTab('actuators')">
+            <i class="fas fa-cog"></i> Atuadores
+          </button>
+        </div>
+
+        <div id="equipmentContent"></div>
+      </div>
+    </div>
+
+    <!-- Modal de Manutenção -->
+    <div id="maintenanceModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 class="modal-title">Manutenção</h2>
+          <button class="modal-close" onclick="closeModal('maintenanceModal')">
+            &times;
+          </button>
+        </div>
+        <div class="tabs">
+          <button
+            class="tab-button active"
+            onclick="showMaintenanceTab('daily')"
+          >
+            Diária
+          </button>
+          <button class="tab-button" onclick="showMaintenanceTab('weekly')">
+            Semanal
+          </button>
+          <button class="tab-button" onclick="showMaintenanceTab('monthly')">
+            Mensal
+          </button>
+        </div>
+        <div id="maintenanceContent"></div>
+      </div>
+    </div>
+
+    <!-- Modal de Documentação -->
+    <div id="docsModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 class="modal-title">Documentação</h2>
+          <button class="modal-close" onclick="closeModal('docsModal')">
+            &times;
+          </button>
+        </div>
+        <div class="tabs">
+          <button class="tab-button active" onclick="showDocsTab('system')">
+            Visão Geral
+          </button>
+          <button class="tab-button" onclick="showDocsTab('hardware')">
+            Instalação
+          </button>
+          <button class="tab-button" onclick="showDocsTab('api')">API</button>
+        </div>
+        <div id="docsContent"></div>
+      </div>
+    </div>
+
+    <!-- Modal de Funcionalidades -->
+    <div id="featuresModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 class="modal-title">Funcionalidades</h2>
+          <button class="modal-close" onclick="closeModal('featuresModal')">
+            &times;
+          </button>
+        </div>
+        <div id="featuresContent"></div>
+      </div>
+    </div>
+
+    <script>
+      // Função auxiliar para mostrar erro
+      function showErrorMessage(elementId) {
+        document.getElementById(elementId).innerHTML = `
+        <div class="card error">
+            <h3>Erro ao carregar dados</h3>
+            <p>Por favor, tente novamente mais tarde.</p>
+        </div>`;
+      }
+
+      // Função para mostrar o guia
+      async function showGuide() {
+        try {
+          const response = await fetch("/guide");
+          const guide = await response.json();
+          let html = `
+            <div class="cards-grid">
+                <div class="card">
+                    <h3 class="card-title"><i class="fas fa-terminal"></i> Comandos Básicos</h3>
+                    <ul>
+                        ${guide.basic.commands
+                          .map((cmd) => `<li>${cmd}</li>`)
+                          .join("")}
+                    </ul>
+                </div>
+                <div class="card">
+                    <h3 class="card-title"><i class="fas fa-desktop"></i> Interface</h3>
+                    <ul>
+                        ${guide.basic.interface
+                          .map((item) => `<li>${item}</li>`)
+                          .join("")}
+                    </ul>
+                </div>
+                <div class="card">
+                    <h3 class="card-title"><i class="fas fa-thermometer-half"></i> Temperaturas</h3>
+                    <ul>
+                        ${Object.entries(guide.settings.temperature)
+                          .map(
+                            ([k, v]) => `<li><strong>${k}:</strong> ${v}</li>`
+                          )
+                          .join("")}
+                    </ul>
+                </div>
+            </div>`;
+          document.getElementById("guideContent").innerHTML = html;
+          document.getElementById("guideModal").style.display = "block";
+        } catch (error) {
+          console.error("Erro ao carregar guia:", error);
+          showErrorMessage("guideContent");
+        }
+      }
+
+      // Função para mostrar receitas
+      async function showRecipes() {
+        try {
+          const response = await fetch("/recipes");
+          const recipes = await response.json();
+
+          function renderRecipeTab(category) {
+            const recipesInCategory = recipes[category];
+            let html = '<div class="cards-grid">';
+
+            for (const [key, recipe] of Object.entries(recipesInCategory)) {
+              html += `
+                    <div class="card">
+                        <h3 class="card-title">${recipe.name}</h3>
+                        <p><strong>Temperatura:</strong> ${
+                          recipe.temperature
+                        }</p>
+                        <div class="recipe-content">
+                            <h4><i class="fas fa-list"></i> Ingredientes</h4>
+                            <ul>
+                                ${recipe.ingredients
+                                  .map((ing) => `<li>${ing}</li>`)
+                                  .join("")}
+                            </ul>
+                            
+                            <h4><i class="fas fa-tasks"></i> Passos</h4>
+                            <ol>
+                                ${recipe.steps
+                                  .map((step) => `<li>${step}</li>`)
+                                  .join("")}
+                            </ol>
+                            
+                            ${
+                              recipe.tips
+                                ? `
+                                <h4><i class="fas fa-lightbulb"></i> Dicas</h4>
+                                <ul>
+                                    ${recipe.tips
+                                      .map((tip) => `<li>${tip}</li>`)
+                                      .join("")}
+                                </ul>
+                            `
+                                : ""
+                            }
+                        </div>
+                    </div>`;
+            }
+            html += "</div>";
+            document.getElementById("recipesContent").innerHTML = html;
+          }
+
+          renderRecipeTab("tradicional");
+          document.getElementById("recipesModal").style.display = "block";
+
+          // Atualiza a função global para troca de tabs
+          window.showRecipeTab = function (category) {
+            const tabs = document.querySelectorAll("#recipesTabs .tab-button");
+            tabs.forEach((tab) => tab.classList.remove("active"));
+            event.target.classList.add("active");
+            renderRecipeTab(category);
+          };
+        } catch (error) {
+          console.error("Erro ao carregar receitas:", error);
+          showErrorMessage("recipesContent");
+        }
+      }
+
+      // Função para mostrar métodos de preparo
+      async function showBrewingMethods() {
+        try {
+          const response = await fetch("/brewing-methods");
+          const methods = await response.json();
+          let html = '<div class="cards-grid">';
+
+          for (const method of Object.values(methods)) {
+            html += `
+                <div class="card">
+                    <h3 class="card-title"><i class="fas fa-coffee"></i> ${
+                      method.name
+                    }</h3>
+                    <div class="method-content">
+                        ${
+                          method.equipment
+                            ? `
+                            <h4><i class="fas fa-tools"></i> Equipamentos</h4>
+                            <ul>
+                                ${method.equipment
+                                  .map((eq) => `<li>${eq}</li>`)
+                                  .join("")}
+                            </ul>
+                        `
+                            : ""
+                        }
+                        
+                        <div class="method-details">
+                            <p><strong>Moagem:</strong> ${method.grind_size}</p>
+                            <p><strong>Proporção:</strong> ${method.ratio}</p>
+                            <p><strong>Tempo:</strong> ${method.time}</p>
+                        </div>
+                        
+                        <h4><i class="fas fa-list-ol"></i> Passos</h4>
+                        <ol>
+                            ${method.steps
+                              .map((step) => `<li>${step}</li>`)
+                              .join("")}
+                        </ol>
+                    </div>
+                </div>`;
+          }
+          html += "</div>";
+
+          document.getElementById("brewingContent").innerHTML = html;
+          document.getElementById("brewingModal").style.display = "block";
+        } catch (error) {
+          console.error("Erro ao carregar métodos:", error);
+          showErrorMessage("brewingContent");
+        }
+      }
+
+      // Função para mostrar equipamentos
+      async function showEquipment() {
+        try {
+          const response = await fetch("/equipment");
+          const equipment = await response.json();
+
+          function renderEquipmentTab(category) {
+            let html = '<div class="cards-grid">';
+
+            const items = equipment[category];
+
+            for (const [key, item] of Object.entries(items)) {
+              html += `
+                    <div class="card">
+                        <h3 class="card-title">
+                            ${getEquipmentIcon(category)} ${item.name}
+                        </h3>
+                        <div class="equipment-details">
+                            ${
+                              item.model
+                                ? `<p><strong>Modelo:</strong> ${item.model}</p>`
+                                : ""
+                            }
+                            ${
+                              item.type
+                                ? `<p><strong>Tipo:</strong> ${item.type}</p>`
+                                : ""
+                            }
+                            ${
+                              item.range
+                                ? `<p><strong>Faixa:</strong> ${item.range}</p>`
+                                : ""
+                            }
+                            ${
+                              item.precision
+                                ? `<p><strong>Precisão:</strong> ${item.precision}</p>`
+                                : ""
+                            }
+                            
+                            <div class="specs-section">
+                                <h4>Especificações</h4>
+                                <ul>
+                                    ${item.specs
+                                      .map((spec) => `<li>${spec}</li>`)
+                                      .join("")}
+                                </ul>
+                            </div>
+
+                            ${
+                              item.pins
+                                ? `
+                                <div class="pins-section">
+                                    <h4>Conexões</h4>
+                                    <ul>
+                                        ${Object.entries(item.pins)
+                                          .map(
+                                            ([pin, use]) =>
+                                              `<li><strong>${pin}:</strong> ${use}</li>`
+                                          )
+                                          .join("")}
+                                    </ul>
+                                </div>
+                            `
+                                : ""
+                            }
+                        </div>
+                    </div>
+                `;
+            }
+
+            html += "</div>";
+            document.getElementById("equipmentContent").innerHTML = html;
+          }
+
+          // Renderiza a primeira tab
+          renderEquipmentTab("controllers");
+
+          // Atualiza a função de troca de tabs
+          window.showEquipmentTab = function (category) {
+            const tabs = document.querySelectorAll(
+              "#equipmentModal .tab-button"
+            );
+            tabs.forEach((tab) => tab.classList.remove("active"));
+            event.target.classList.add("active");
+            renderEquipmentTab(category);
+          };
+        } catch (error) {
+          console.error("Erro ao carregar equipamentos:", error);
+          document.getElementById("equipmentContent").innerHTML = `
+            <div class="error-message">
+                <i class="fas fa-exclamation-triangle"></i>
+                <p>Erro ao carregar equipamentos. Tente novamente mais tarde.</p>
+            </div>
+        `;
+        }
+      }
+
+      // Função auxiliar para ícones
+      function getEquipmentIcon(category) {
+        const icons = {
+          controllers: '<i class="fas fa-microchip"></i>',
+          sensors: '<i class="fas fa-thermometer-half"></i>',
+          actuators: '<i class="fas fa-cog"></i>',
+        };
+        return icons[category] || '<i class="fas fa-cog"></i>';
+      }
+
+      // Função para mostrar a manutenção
+      async function showMaintenance() {
+        try {
+          const response = await fetch("/maintenance-guide");
+          const guide = await response.json();
+
+          function renderMaintenanceTab(period) {
+            let html = '<div class="cards-grid">';
+
+            guide[period].forEach((item) => {
+              html += `
+                    <div class="card">
+                        <h3 class="card-title">
+                            <i class="fas fa-tools"></i> ${item.title}
+                        </h3>
+                        <div class="badge ${
+                          item.priority.toLowerCase() === "alta"
+                            ? "badge-warning"
+                            : "badge-success"
+                        }">
+                            Prioridade: ${item.priority}
+                        </div>
+                        <div class="maintenance-content">
+                            <h4><i class="fas fa-tasks"></i> Tarefas</h4>
+                            <ul>
+                                ${item.tasks
+                                  .map((task) => `<li>${task}</li>`)
+                                  .join("")}
+                            </ul>
+                        </div>
+                    </div>`;
+            });
+
+            html += "</div>";
+            document.getElementById("maintenanceContent").innerHTML = html;
+          }
+
+          renderMaintenanceTab("daily");
+          document.getElementById("maintenanceModal").style.display = "block";
+
+          // Atualiza função de troca de tabs
+          window.showMaintenanceTab = function (period) {
+            const tabs = document.querySelectorAll(".tabs .tab-button");
+            tabs.forEach((tab) => tab.classList.remove("active"));
+            event.target.classList.add("active");
+            renderMaintenanceTab(period);
+          };
+        } catch (error) {
+          console.error("Erro ao carregar manutenção:", error);
+          showErrorMessage("maintenanceContent");
+        }
+      }
+
+      // Função para mostrar documentação
+      async function showDocs() {
+        try {
+          const response = await fetch("/docs");
+          const docs = await response.json();
+
+          function renderDocsTab(section) {
+            let html = '<div class="cards-grid">';
+
+            const sectionData = docs[section];
+            switch (section) {
+              case "system":
+                html += `
+                        <div class="card">
+                            <h3 class="card-title">
+                                <i class="fas fa-cogs"></i> ${sectionData.title}
+                            </h3>
+                            <p>${sectionData.description}</p>
+                            <p><strong>Versão:</strong> ${
+                              sectionData.version
+                            }</p>
+                            <h4>Arquitetura</h4>
+                            <ul>
+                                ${sectionData.architecture
+                                  .map((item) => `<li>${item}</li>`)
+                                  .join("")}
+                            </ul>
+                        </div>`;
+                break;
+
+              case "api":
+                html += `
+                        <div class="card">
+                            <h3 class="card-title">
+                                <i class="fas fa-code"></i> ${sectionData.title}
+                            </h3>
+                            <div class="api-endpoints">
+                                ${sectionData.endpoints
+                                  .map(
+                                    (endpoint) => `
+                                    <div class="endpoint">
+                                        <code>${endpoint.method} ${endpoint.path}</code>
+                                        <p>${endpoint.description}</p>
+                                    </div>
+                                `
+                                  )
+                                  .join("")}
+                            </div>
+                        </div>`;
+                break;
+
+              case "hardware":
+                html += `
+                        <div class="card">
+                            <h3 class="card-title">
+                                <i class="fas fa-microchip"></i> ${
+                                  sectionData.title
+                                }
+                            </h3>
+                            <ul>
+                                ${sectionData.components
+                                  .map((comp) => `<li>${comp}</li>`)
+                                  .join("")}
+                            </ul>
+                        </div>`;
+                break;
+            }
+
+            html += "</div>";
+            document.getElementById("docsContent").innerHTML = html;
+          }
+
+          renderDocsTab("system");
+          document.getElementById("docsModal").style.display = "block";
+
+          // Atualiza função de troca de tabs
+          window.showDocsTab = function (section) {
+            const tabs = document.querySelectorAll(".tabs .tab-button");
+            tabs.forEach((tab) => tab.classList.remove("active"));
+            event.target.classList.add("active");
+            renderDocsTab(section);
+          };
+        } catch (error) {
+          console.error("Erro ao carregar documentação:", error);
+          showErrorMessage("docsContent");
+        }
+      }
+
+      // Função para mostrar funcionalidades
+      async function showFeatures() {
+        try {
+          const response = await fetch("/features");
+          const features = await response.json();
+
+          let html = '<div class="cards-grid">';
+
+          for (const [key, section] of Object.entries(features)) {
+            html += `
+                <div class="card">
+                    <h3 class="card-title">
+                        <i class="fas fa-${getFeatureIcon(key)}"></i> ${
+              section.title
+            }
+                    </h3>
+                    <ul>
+                        ${section.features
+                          .map((feature) => `<li>${feature}</li>`)
+                          .join("")}
+                    </ul>
+                </div>`;
+          }
+
+          html += "</div>";
+          document.getElementById("featuresContent").innerHTML = html;
+          document.getElementById("featuresModal").style.display = "block";
+        } catch (error) {
+          console.error("Erro ao carregar funcionalidades:", error);
+          showErrorMessage("featuresContent");
+        }
+      }
+
+      // Função auxiliar para ícones de funcionalidades
+      function getFeatureIcon(key) {
+        const icons = {
+          control: "sliders-h",
+          monitoring: "chart-line",
+          ai: "brain",
+          security: "shield-alt",
+        };
+        return icons[key] || "star";
+      }
+
+      // Atualizar a função showEquipment para incluir atuadores
+      async function showEquipment() {
+        try {
+          const response = await fetch("/equipment");
+          const equipment = await response.json();
+
+          function renderEquipmentTab(category) {
+            let html = '<div class="cards-grid">';
+
+            if (category === "actuators") {
+              Object.values(equipment.actuators).forEach((actuator) => {
+                html += `
+                        <div class="card">
+                            <h3 class="card-title">
+                                <i class="fas fa-cog"></i> ${actuator.name}
+                            </h3>
+                            <p><strong>Modelo:</strong> ${actuator.model}</p>
+                            <h4>Especificações</h4>
+                            <ul>
+                                ${actuator.specs
+                                  .map((spec) => `<li>${spec}</li>`)
+                                  .join("")}
+                            </ul>
+                        </div>`;
+              });
+            } else {
+              // Seu código existente para controllers e sensors
+            }
+
+            if (category === "controllers") {
+              for (const controller of Object.values(equipment.controllers)) {
+                html += `
+                        <div class="card">
+                            <h3 class="card-title"><i class="fas fa-microchip"></i> ${
+                              controller.name
+                            }</h3>
+                            <div class="controller-content">
+                                <h4>Especificações</h4>
+                                <ul>
+                                    ${controller.specs
+                                      .map((spec) => `<li>${spec}</li>`)
+                                      .join("")}
+                                </ul>
+                                
+                                ${
+                                  controller.pins
+                                    ? `
+                                    <h4>Conexões</h4>
+                                    <ul>
+                                        ${Object.entries(controller.pins)
+                                          .map(
+                                            ([pin, use]) =>
+                                              `<li><strong>${pin}:</strong> ${use}</li>`
+                                          )
+                                          .join("")}
+                                    </ul>
+                                `
+                                    : ""
+                                }
+                            </div>
+                        </div>`;
+              }
+            } else if (category === "sensors") {
+              for (const sensor of Object.values(equipment.sensors)) {
+                html += `
+                        <div class="card">
+                            <h3 class="card-title"><i class="fas fa-sensor"></i> ${sensor.model}</h3>
+                            <div class="sensor-content">
+                                <p><strong>Tipo:</strong> ${sensor.type}</p>
+                                <p><strong>Faixa:</strong> ${sensor.range}</p>
+                                <p><strong>Precisão:</strong> ${sensor.precision}</p>
+                            </div>
+                        </div>`;
+              }
+            }
+
+            html += "</div>";
+            document.getElementById("equipmentContent").innerHTML = html;
+          }
+
+          renderEquipmentTab("controllers");
+          document.getElementById("equipmentModal").style.display = "block";
+
+          // Atualiza a função global para troca de tabs
+          window.showEquipmentTab = function (category) {
+            const tabs = document.querySelectorAll(".tabs .tab-button");
+            tabs.forEach((tab) => tab.classList.remove("active"));
+            event.target.classList.add("active");
+            renderEquipmentTab(category);
+          };
+        } catch (error) {
+          console.error("Erro ao carregar equipamentos:", error);
+          showErrorMessage("equipmentContent");
+        }
+      }
+    </script>
+
+    <script>
+      let statusUpdateInterval;
+      let isProcessing = false;
+      let conversationId = null;
+
+      // Funções de status
+      function updateStatus() {
+        fetch("/status")
+          .then((response) => response.json())
+          .then((data) => {
+            // Atualiza status do Arduino
+            const arduinoStatusIndicator =
+              document.getElementById("arduino-status");
+            const arduinoStatusText = document.getElementById(
+              "arduino-status-text"
+            );
+            arduinoStatusIndicator.className = `status-indicator status-${
+              data.arduino_connected ? "online" : "offline"
+            }`;
+            arduinoStatusText.textContent = `Arduino: ${
+              data.arduino_connected ? "Conectado" : "Desconectado"
+            }`;
+
+            // Desabilita o botão de ligar se o Arduino estiver desconectado
+            const powerOnButton = document.querySelector(
+              ".control-button.power-on"
+            );
+            if (powerOnButton) {
+              powerOnButton.disabled = !data.arduino_connected;
+              if (!data.arduino_connected) {
+                powerOnButton.style.opacity = "0.5";
+                powerOnButton.title = "Arduino não conectado";
+              } else {
+                powerOnButton.style.opacity = "1";
+                powerOnButton.title = "Ligar Cafeteira";
+              }
+            }
+
+            // ... resto do código de atualização de status ...
+          })
+          .catch((error) => {
+            console.error("Erro ao atualizar status:", error);
+          });
+      }
+
+      // Funções de controle
+      async function controlCoffee(action) {
+        const message = `${action} cafeteira`;
+        document.getElementById("userInput").value = message;
+        await sendMessage();
+      }
+
+      // Funções de chat
+      async function sendMessage() {
+        if (isProcessing) return;
+
+        const input = document.getElementById("userInput");
+        const sendButton = document.getElementById("sendButton");
+        const message = input.value.trim();
+
+        if (!message) return;
+
+        // Previne comportamento padrão que pode causar scroll
+        event?.preventDefault();
+
+        isProcessing = true;
+        sendButton.disabled = true;
+        sendButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+        appendMessage(message, "user-message");
+        input.value = "";
+
+        try {
+          const response = await fetch("/chat", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              conversation_id: conversationId,
+              message: message,
+            }),
+          });
+
+          const data = await response.json();
+
+          if (data && data.answer) {
+            appendMessage(data.answer, "bot-message");
+            if (data.conversation_id) {
+              conversationId = data.conversation_id;
+            }
+            updateStatus();
+          }
+        } catch (error) {
+          console.error("Erro:", error);
+          appendMessage(
+            "Desculpe, ocorreu um erro ao processar sua mensagem.",
+            "bot-message"
+          );
+        } finally {
+          isProcessing = false;
+          sendButton.disabled = false;
+          sendButton.innerHTML = '<i class="fas fa-paper-plane"></i> Enviar';
+          input.focus();
+        }
+      }
+
+      function appendMessage(content, className) {
+        const messagesContainer = document.getElementById("messages");
+        const messageDiv = document.createElement("div");
+        messageDiv.className = `message ${className}`;
+        messageDiv.textContent = content;
+        messagesContainer.appendChild(messageDiv);
+
+        // Força o scroll para a última mensagem com animação suave
+        setTimeout(() => {
+          messageDiv.scrollIntoView({ behavior: "smooth", block: "end" });
+        }, 100);
+      }
+
+      // Função de logout
+      async function handleLogout() {
+        try {
+          await fetch("/logout");
+          window.location.href = "/auth";
+        } catch (error) {
+          console.error("Erro ao fazer logout:", error);
+        }
+      }
+
+      // Função de logout
+      async function voltarHome() {
+        try {
+          await fetch("/");
+          window.location.href = "/";
+        } catch (error) {
+          console.error("Erro ao fazer logout:", error);
+        }
+      }
+
+      // Event Listeners
+      // Adicione esses event listeners
+      document.addEventListener("DOMContentLoaded", function () {
+        const userInput = document.getElementById("userInput");
+        const form = document.querySelector(".input-container");
+
+        // Previne o comportamento padrão do form
+        form.addEventListener("submit", (e) => {
+          e.preventDefault();
+          sendMessage();
+        });
+
+        // Previne o scroll ao pressionar enter
+        userInput.addEventListener("keypress", function (e) {
+          if (e.key === "Enter" && !isProcessing) {
+            e.preventDefault();
+            sendMessage();
+          }
+        });
+      });
+      // Limpa intervalo quando a página é fechada
+      window.addEventListener("beforeunload", function () {
+        if (statusUpdateInterval) {
+          clearInterval(statusUpdateInterval);
+        }
+      });
+
+      // Modal Functions
+      function showModal(modalId) {
+        document.getElementById(modalId).style.display = "block";
+        document.body.style.overflow = "hidden";
+      }
+
+      function closeModal(modalId) {
+        document.getElementById(modalId).style.display = "none";
+        document.body.style.overflow = "auto";
+      }
+
+      // Updated section show functions
+      function showSection(section) {
+        switch (section) {
+          case "guide":
+            showModal("guideModal");
+            showGuide();
+            break;
+          case "recipes":
+            showModal("recipesModal");
+            showRecipes();
+            break;
+          case "brew-methods":
+            showModal("brewingModal");
+            showBrewingMethods();
+            break;
+          case "equipment":
+            showModal("equipmentModal");
+            showEquipment();
+            break;
+          case "maintenance":
+            showModal("maintenanceModal");
+            showMaintenance();
+            break;
+          case "docs":
+            showModal("docsModal");
+            showDocs();
+            break;
+          case "features":
+            showModal("featuresModal");
+            showFeatures();
+            break;
+        }
+      }
+
+      // Close modal when clicking outside
+      window.onclick = function (event) {
+        const modals = document.getElementsByClassName("modal");
+        for (let modal of modals) {
+          if (event.target === modal) {
+            modal.style.display = "none";
+            document.body.style.overflow = "auto";
+          }
+        }
+      };
+
+      // Close modal with Escape key
+      document.addEventListener("keydown", function (event) {
+        if (event.key === "Escape") {
+          const modals = document.getElementsByClassName("modal");
+          for (let modal of modals) {
+            if (modal.style.display === "block") {
+              modal.style.display = "none";
+              document.body.style.overflow = "auto";
+            }
+          }
+        }
+      });
+    </script>
+  </body>
+</html>
