@@ -830,10 +830,10 @@
           const textElement = document.getElementById("arduino-status-text");
 
           statusElement.className = `status-indicator status-${
-            connected ? "online" : "offline"
+            connected ? "offline" : "online"
           }`;
           textElement.textContent = `Arduino: ${
-            connected ? "Conectado" : "Deconectado"
+            connected ? "Deconectado" : "Conectado"
           }`;
         }
 
@@ -863,10 +863,10 @@
           const textElement = document.getElementById("coffee-status-text");
 
           statusElement.className = `status-indicator status-${
-            isOn ? "offline" : "online"
+            isOn ? "online" : "offline"
           }`;
           textElement.textContent = `Cafeteira: ${
-            isOn ? "Desligada" : "Ligada"
+            isOn ? "Ligada" : "Desligada"
           }`;
 
           // Atualiza estado dos botões

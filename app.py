@@ -489,7 +489,7 @@ def chat(current_user):
 
         arduino_connected = check_arduino_connection()
 
-        if 'ligar' in message and 'cafeteira' in message:
+        if 'desligar' in message and 'cafeteira' in message:
             if not arduino_connected:
                 return jsonify({
                     "answer": "⚠️ Não é possível ligar a cafeteira.\n\n"
@@ -498,8 +498,32 @@ def chat(current_user):
                 })
             
             try:
-                arduino_serial.write(b'ligar\n')
+                arduino_serial.write(b'desligar\n')
                 response = arduino_serial.readline().decode().strip()
+                
+                coffee_state.update({
+                    "status": "desligada",
+                    "system_status": "offline",
+                    "temperature": "25.0"
+                })
+                update_coffee_state(json.dumps(coffee_state))
+                
+                # Publica o estado no MQTT
+                publish_coffee_state("desligada")
+                
+                return jsonify({
+                    "answer": "✅ Cafeteira desligada com sucesso!"
+                })
+                
+            except Exception as e:
+                print(f"Erro na comunicação serial: {e}")
+                return jsonify({
+                    "answer": "❌ Erro ao enviar comando para o Arduino."
+                })
+
+        elif 'ligar' in message and 'cafeteira' in message:
+            try:
+                arduino_serial.write(b'ligar\n')
                 
                 coffee_state.update({
                     "status": "ligada",
@@ -512,31 +536,7 @@ def chat(current_user):
                 publish_coffee_state("ligada")
                 
                 return jsonify({
-                    "answer": "✅ Cafeteira ligada com sucesso!\nA cafeteira está LIGADA e pronta para uso."
-                })
-                
-            except Exception as e:
-                print(f"Erro na comunicação serial: {e}")
-                return jsonify({
-                    "answer": "❌ Erro ao enviar comando para o Arduino."
-                })
-
-        elif 'desligar' in message and 'cafeteira' in message:
-            try:
-                arduino_serial.write(b'desligar\n')
-                
-                coffee_state.update({
-                    "status": "desligada",
-                    "system_status": "offline",
-                    "temperature": "0"
-                })
-                update_coffee_state(json.dumps(coffee_state))
-                
-                # Publica o estado no MQTT
-                publish_coffee_state("desligada")
-                
-                return jsonify({
-                    "answer": "✅ Cafeteira desligada com sucesso!\nA cafeteira está DESLIGADA."
+                    "answer": "✅ Cafeteira ligada com sucesso!\nA cafeteira está LIGADA e pronta para uso.."
                 })
                 
             except Exception as e:

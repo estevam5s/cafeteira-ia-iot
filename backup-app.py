@@ -72,7 +72,7 @@ def find_arduino_port():
                 if 'ch340' in device.lower() or 'acm' in device.lower() or 'usb' in device.lower():
                     # Obtém o caminho real do dispositivo
                     real_path = os.path.realpath(device)
-                    print(f"Dispositivo encontrado: {device} -> {real_path}")
+                    print(f"Dispositivo encontrado: {real_path}")
                     return real_path
         except Exception as e:
             print(f"Erro ao procurar dispositivo: {e}")
@@ -134,20 +134,33 @@ def connect_arduino():
         return False
 
 def send_command_to_arduino(command):
-    """Envia comandos ao Arduino com tratamento de erros."""
+    """Função melhorada para enviar comandos ao Arduino"""
     global arduino_serial
-    try:
+    
+    if not arduino_serial or not arduino_serial.is_open:
         if not connect_arduino():
-            raise ConnectionError("Arduino não está conectado")
+            return None
 
+    try:
+        # Limpa o buffer antes de enviar o comando
+        arduino_serial.reset_input_buffer()
+        arduino_serial.reset_output_buffer()
+        
+        # Envia o comando com terminador
         arduino_serial.write(f"{command}\n".encode())
         arduino_serial.flush()
         print(f"Comando enviado: {command}")
         
-        # Aguarda resposta do Arduino
-        response = arduino_serial.readline().decode().strip()
-        print(f"Resposta do Arduino: {response}")
-        return response
+        # Aguarda resposta com timeout
+        start_time = time.time()
+        while time.time() - start_time < 2:  # 2 segundos de timeout
+            if arduino_serial.in_waiting:
+                response = arduino_serial.readline().decode().strip()
+                print(f"Resposta do Arduino: {response}")
+                return response
+            time.sleep(0.1)
+        
+        return None
     except Exception as e:
         print(f"Erro ao enviar comando: {e}")
         return None
@@ -199,14 +212,21 @@ def get_db():
 # Configuração MQTT
 mqtt_client = mqtt.Client()
 
-# Modifique a função de conexão MQTT
 def on_connect(client, userdata, flags, rc):
     print(f"Conectado ao broker MQTT com código: {rc}")
+    # Inscreve nos tópicos relevantes
     client.subscribe([(MQTT_TOPIC_COMMAND, 0), (MQTT_TOPIC_STATUS, 0)])
-    # Quando conectar, publicar uma mensagem para verificar conectividade
-    client.publish("cafeteira/ping", "ping")
+    # Publica mensagem inicial de status
+    client.publish(MQTT_TOPIC_STATUS, "desligada")
     global coffee_state
     coffee_state["arduino_connected"] = True
+
+def publish_coffee_state(state):
+    try:
+        mqtt_client.publish(MQTT_TOPIC_STATUS, state)
+        print(f"Estado publicado no MQTT: {state}")
+    except Exception as e:
+        print(f"Erro ao publicar no MQTT: {e}")
 
 # Adicione uma função para desconexão MQTT
 def on_disconnect(client, userdata, rc):
@@ -276,6 +296,7 @@ def is_arduino_connected():
     return time_diff < ARDUINO_TIMEOUT
 
 def update_coffee_state(payload):
+    """Função melhorada para atualizar o estado da cafeteira"""
     global coffee_state
     try:
         if isinstance(payload, str):
@@ -286,18 +307,20 @@ def update_coffee_state(payload):
                 if payload in ["ligada", "desligada"]:
                     coffee_state["status"] = payload
                     coffee_state["system_status"] = "online" if payload == "ligada" else "offline"
-        
+                    
         coffee_state["last_activity"] = datetime.now().strftime("%H:%M:%S")
+        coffee_state["arduino_connected"] = check_arduino_connection()
         
-        if float(coffee_state["temperature"]) > 95:
+        # Atualiza condições de manutenção
+        if float(coffee_state.get("temperature", 0)) > 95:
             coffee_state["maintenance_needed"] = True
-        if int(coffee_state["water_level"]) < 20:
+        if int(coffee_state.get("water_level", 100)) < 20:
             coffee_state["maintenance_needed"] = True
             
+        print("Estado atualizado:", coffee_state)
+        
     except Exception as e:
         print(f"Erro ao atualizar estado: {e}")
-    
-    print("Estado atualizado:", coffee_state)
 
 def connect_mqtt():
     mqtt_client.on_connect = on_connect
@@ -456,6 +479,105 @@ def get_status():
         print(f"Erro ao obter status: {e}")
         return jsonify({"error": "Erro ao obter status"}), 500
 
+@app.route('/chat', methods=['POST'])
+@token_required
+def chat(current_user):
+    try:
+        data = request.json
+        message = data.get('message', '').lower()
+        print(f"\nMensagem recebida: '{message}'")
+
+        arduino_connected = check_arduino_connection()
+
+        if 'ligar' in message and 'cafeteira' in message:
+            if not arduino_connected:
+                return jsonify({
+                    "answer": "⚠️ Não é possível ligar a cafeteira.\n\n"
+                    "O Arduino não está conectado ao sistema.\n"
+                    "Conecte o Arduino via USB e tente novamente."
+                })
+            
+            try:
+                arduino_serial.write(b'ligar\n')
+                response = arduino_serial.readline().decode().strip()
+                
+                coffee_state.update({
+                    "status": "ligada",
+                    "system_status": "online",
+                    "temperature": "25.0"
+                })
+                update_coffee_state(json.dumps(coffee_state))
+                
+                # Publica o estado no MQTT
+                publish_coffee_state("ligada")
+                
+                return jsonify({
+                    "answer": "✅ Cafeteira ligada com sucesso!\nA cafeteira está LIGADA e pronta para uso."
+                })
+                
+            except Exception as e:
+                print(f"Erro na comunicação serial: {e}")
+                return jsonify({
+                    "answer": "❌ Erro ao enviar comando para o Arduino."
+                })
+
+        elif 'desligar' in message and 'cafeteira' in message:
+            try:
+                arduino_serial.write(b'desligar\n')
+                
+                coffee_state.update({
+                    "status": "desligada",
+                    "system_status": "offline",
+                    "temperature": "0"
+                })
+                update_coffee_state(json.dumps(coffee_state))
+                
+                # Publica o estado no MQTT
+                publish_coffee_state("desligada")
+                
+                return jsonify({
+                    "answer": "✅ Cafeteira desligada com sucesso!\nA cafeteira está DESLIGADA."
+                })
+                
+            except Exception as e:
+                print(f"Erro ao desligar: {e}")
+                return jsonify({
+                    "answer": "❌ Erro ao enviar comando de desligamento."
+                })
+        
+        elif 'status' in message and 'cafeteira' in message:
+            status = "LIGADA" if coffee_state["status"] == "ligada" else "DESLIGADA"
+            return jsonify({
+                "answer": f"Status da cafeteira: {status}\n"
+                         f"Temperatura atual: {coffee_state['temperature']}°C\n"
+                         f"Sistema: {coffee_state['system_status']}"
+            })
+
+        # Resto do código do chat permanece igual...
+        headers = {
+            'Authorization': f'Bearer {DIFY_API_KEY}',
+            'Content-Type': 'application/json'
+        }
+        
+        dify_response = requests.post(
+            f'{DIFY_API_URL}/chat-messages',
+            headers=headers,
+            json={
+                'conversation_id': data.get('conversation_id'),
+                'inputs': {},
+                'query': message,
+                'response_mode': "blocking",
+                'user': "user"
+            }
+        )
+        
+        return jsonify(dify_response.json())
+
+    except Exception as e:
+        print(f"Erro no processamento do chat: {e}")
+        return jsonify({
+            "answer": "❌ Ocorreu um erro ao processar sua solicitação."
+        })
 
 # Rotas para os modais
 @app.route('/guide')
