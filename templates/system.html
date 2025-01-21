@@ -267,7 +267,7 @@
         flex-direction: column;
         padding: 1.5rem;
         height: calc(100vh - 260px);
-        min-height: 589px;
+        min-height: 658px;
         position: relative; /* Adiciona posição relativa para referência */
       }
 
@@ -778,6 +778,12 @@
           >
             <i class="fas fa-power-off"></i> Desligar Cafeteira
           </button>
+          <button
+            onclick="checkArduinoConnection()"
+            class="control-button check-connection"
+          >
+            <i class="fas fa-sync"></i> Verificar Conexão
+          </button>
         </div>
 
         <div class="status-panel">
@@ -811,16 +817,106 @@
       </aside>
 
       <script>
+        // Função para adicionar mensagem ao chat
+        function addMessage(message, isBot = false) {
+          const messagesDiv = document.getElementById("messages");
+          const messageDiv = document.createElement("div");
+          messageDiv.className = `message ${
+            isBot ? "bot-message" : "user-message"
+          }`;
+          messageDiv.textContent = message;
+          messagesDiv.appendChild(messageDiv);
+          messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        // Função para verificar conexão do Arduino
+        function checkArduinoConnection() {
+          // Adiciona a mensagem do usuário ao chat
+          addMessage("Verificar conexão do Arduino", false);
+
+          return fetch("/chat", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              message: "verificar arduino",
+            }),
+          })
+            .then((response) => response.json())
+            .then((data) => {
+              // Adiciona a resposta ao chat
+              addMessage(data.answer, true);
+
+              // Atualiza o indicador visual
+              const isConnected = data.answer.includes("✅");
+              updateArduinoStatus(isConnected);
+              return isConnected;
+            })
+            .catch((error) => {
+              console.error("Erro ao verificar Arduino:", error);
+              addMessage("❌ Erro ao verificar conexão do Arduino.", true);
+              updateArduinoStatus(false);
+              return false;
+            });
+        }
+
+        // Função para verificar conexão da cafeteira
+        function checkCoffeeConnection() {
+          // Adiciona a mensagem do usuário ao chat
+          addMessage("Verificar conexão da Cafeteira", false);
+
+          checkArduinoConnection().then((isArduinoConnected) => {
+            if (!isArduinoConnected) {
+              addMessage(
+                "⚠️ Não é possível verificar a cafeteira pois o Arduino não está conectado.",
+                true
+              );
+              updateCoffeeStatus(false);
+              return;
+            }
+
+            fetch("/chat", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                message: "verificar cafeteira",
+              }),
+            })
+              .then((response) => response.json())
+              .then((data) => {
+                // Adiciona a resposta ao chat
+                addMessage(data.answer, true);
+
+                // Atualiza o indicador visual
+                const isConnected = data.answer.includes("✅");
+                updateCoffeeStatus(isConnected);
+              })
+              .catch((error) => {
+                console.error("Erro ao verificar Cafeteira:", error);
+                addMessage("❌ Erro ao verificar conexão da Cafeteira.", true);
+                updateCoffeeStatus(false);
+              });
+          });
+        }
+
         // Função para verificar status do ESP32
         function checkESP32Status() {
           fetch("/status")
             .then((response) => response.json())
             .then((data) => {
               updateArduinoStatus(data.arduino_connected);
+              if (data.arduino_connected) {
+                // Atualiza o status da cafeteira com base no estado atual
+                updateCoffeeStatus(data.coffee_state === "ligada");
+              }
             })
             .catch((error) => {
               console.error("Erro ao verificar ESP32:", error);
               updateArduinoStatus(false);
+              updateCoffeeStatus(false);
             });
         }
 
@@ -833,28 +929,48 @@
             connected ? "online" : "offline"
           }`;
           textElement.textContent = `Arduino: ${
-            connected ? "Conectado" : "Deconectado"
+            connected ? "Conectado" : "Desconectado"
           }`;
         }
 
         // Função para controlar a cafeteira
         function controlCoffee(action) {
-          fetch("/chat", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              message: `${action} cafeteira`,
-            }),
-          })
-            .then((response) => response.json())
-            .then((data) => {
-              if (data.answer.includes("✅")) {
-                updateCoffeeStatus(action === "ligar");
-              }
+          // Verifica primeiro se o Arduino está conectado
+          checkArduinoConnection().then((isArduinoConnected) => {
+            if (!isArduinoConnected) {
+              addMessage(
+                "⚠️ Não é possível controlar a cafeteira pois o Arduino não está conectado.",
+                true
+              );
+              return;
+            }
+
+            // Adiciona a mensagem do usuário ao chat
+            addMessage(`${action} cafeteira`, false);
+
+            fetch("/chat", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                message: `${action} cafeteira`,
+              }),
             })
-            .catch((error) => console.error("Erro:", error));
+              .then((response) => response.json())
+              .then((data) => {
+                // Adiciona a resposta ao chat
+                addMessage(data.answer, true);
+
+                if (data.answer.includes("✅")) {
+                  updateCoffeeStatus(action === "ligar");
+                }
+              })
+              .catch((error) => {
+                console.error("Erro:", error);
+                addMessage("❌ Erro ao controlar a cafeteira.", true);
+              });
+          });
         }
 
         // Função para atualizar o status da cafeteira
@@ -862,16 +978,13 @@
           const statusElement = document.getElementById("coffee-status");
           const textElement = document.getElementById("coffee-status-text");
 
+          // Inverte a lógica do status para que "online" signifique "ligada"
           statusElement.className = `status-indicator status-${
-            isOn ? "offline" : "online"
+            isOn ? "online" : "offline"
           }`;
           textElement.textContent = `Cafeteira: ${
-            isOn ? "Desligada" : "Ligada"
+            isOn ? "Ligada" : "Desligada"
           }`;
-
-          // Atualiza estado dos botões
-          document.getElementById("btn-power-on").disabled = isOn;
-          document.getElementById("btn-power-off").disabled = !isOn;
         }
 
         // Atualizar status inicial
@@ -1653,10 +1766,45 @@
       }
 
       // Funções de controle
-      async function controlCoffee(action) {
-        const message = `${action} cafeteira`;
-        document.getElementById("userInput").value = message;
-        await sendMessage();
+      function controlCoffee(action) {
+        // Verifica primeiro se o Arduino está conectado
+        checkArduinoConnection().then((isArduinoConnected) => {
+          if (!isArduinoConnected) {
+            addMessage(
+              "⚠️ Não é possível controlar a cafeteira pois o Arduino não está conectado.",
+              true
+            );
+            return;
+          }
+
+          // Adiciona a mensagem do usuário ao chat
+          addMessage(`${action} cafeteira`, false);
+
+          fetch("/chat", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              message: `${action} cafeteira`,
+            }),
+          })
+            .then((response) => response.json())
+            .then((data) => {
+              // Adiciona a resposta ao chat
+              addMessage(data.answer, true);
+
+              if (data.answer.includes("✅")) {
+                // Se a ação for "ligar", isOn será true. Se for "desligar", isOn será false
+                const isOn = action === "ligar";
+                updateCoffeeStatus(isOn);
+              }
+            })
+            .catch((error) => {
+              console.error("Erro:", error);
+              addMessage("❌ Erro ao controlar a cafeteira.", true);
+            });
+        });
       }
 
       // Funções de chat

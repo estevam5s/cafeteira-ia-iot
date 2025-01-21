@@ -522,6 +522,13 @@ def chat(current_user):
                 })
 
         elif 'ligar' in message and 'cafeteira' in message:
+            if not arduino_connected:
+                return jsonify({
+                    "answer": "⚠️ Não é possível ligar a cafeteira.\n\n"
+                    "O Arduino não está conectado ao sistema.\n"
+                    "Conecte o Arduino via USB e tente novamente."
+                })
+                
             try:
                 arduino_serial.write(b'ligar\n')
                 
@@ -543,6 +550,18 @@ def chat(current_user):
                 print(f"Erro ao desligar: {e}")
                 return jsonify({
                     "answer": "❌ Erro ao enviar comando de desligamento."
+                })
+        
+        elif 'verificar arduino' in message:
+            # Nova condição para verificar o Arduino
+            if arduino_connected:
+                return jsonify({
+                    "answer": "✅ O Arduino está conectado e funcionando normalmente!"
+                })
+            else:
+                return jsonify({
+                    "answer": "❌ O Arduino não está conectado.\n"
+                             "Por favor, verifique a conexão USB e tente novamente."
                 })
         
         elif 'status' in message and 'cafeteira' in message:
