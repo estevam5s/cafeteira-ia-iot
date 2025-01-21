@@ -15,6 +15,30 @@ import glob
 import subprocess
 import threading
 import queue
+import sys
+
+# Função para obter o caminho base do executável
+def get_base_path():
+    if getattr(sys, 'frozen', False):
+        # Se estiver executando como executável
+        return os.path.dirname(sys.executable)
+    else:
+        # Se estiver executando como script Python
+        return os.path.dirname(os.path.abspath(__file__))
+
+# Configura os caminhos
+base_path = get_base_path()
+template_path = os.path.join(base_path, 'templates')
+static_path = os.path.join(base_path, 'static')
+database_path = os.path.join(base_path, 'coffee.db')
+
+# Modifica a configuração do Flask para usar os caminhos corretos
+app = Flask(__name__,
+            template_folder=template_path,
+            static_folder=static_path)
+
+# Atualiza o caminho do banco de dados
+DATABASE = database_path
 
 app = Flask(__name__)
 CORS(app)

@@ -1,10 +1,5 @@
 #!/bin/bash
-
-# Iniciar Mosquitto
-service mosquitto start
-
-# Aguardar Mosquitto iniciar
-sleep 2
-
-# Iniciar aplicação Flask
-python app.py
+echo "Iniciando CoffeeAI..."
+./build/exe.linux-x86_64-3.x/CoffeeAI &
+echo "Servidor iniciado! Acesse http://localhost:5000 no seu navegador"
+read -p "Pressione Enter para sair..."
