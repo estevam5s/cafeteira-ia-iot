@@ -1731,11 +1731,16 @@
           .then((response) => response.json())
           .then((data) => {
             // Atualiza status do Arduino
+            const systemStatusIndicator =
+              document.getElementById("system-status");
+            const systemStatusText =
+              document.getElementById("system-status-text");
             const arduinoStatusIndicator =
               document.getElementById("arduino-status");
             const arduinoStatusText = document.getElementById(
               "arduino-status-text"
             );
+            const lastActivity = document.getElementById("lastActivity");
             arduinoStatusIndicator.className = `status-indicator status-${
               data.arduino_connected ? "online" : "offline"
             }`;
@@ -1747,6 +1752,9 @@
             const powerOnButton = document.querySelector(
               ".control-button.power-on"
             );
+            if (data.last_activity) {
+              lastActivity.textContent = `Última Atividade: ${data.last_activity}`;
+            }
             if (powerOnButton) {
               powerOnButton.disabled = !data.arduino_connected;
               if (!data.arduino_connected) {
