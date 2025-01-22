@@ -935,43 +935,35 @@
 
         // Função para controlar a cafeteira
         function controlCoffee(action) {
-          // Verifica primeiro se o Arduino está conectado
-          checkArduinoConnection().then((isArduinoConnected) => {
-            if (!isArduinoConnected) {
-              addMessage(
-                "⚠️ Não é possível controlar a cafeteira pois o Arduino não está conectado.",
-                true
-              );
-              return;
-            }
+  // Add user message to chat first
+  addMessage(`${action} cafeteira`, false);
 
-            // Adiciona a mensagem do usuário ao chat
-            addMessage(`${action} cafeteira`, false);
+  fetch("/chat", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      message: `${action} cafeteira`,
+    }),
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      // Add bot response to chat
+      addMessage(data.answer, true);
+      
+      if (data.answer.includes("✅")) {
+        const isOn = action === "ligar";
+        updateCoffeeStatus(isOn);
+        updateStatus();
+      }
+    })
+    .catch((error) => {
+      console.error("Erro:", error);
+      addMessage("❌ Erro ao controlar a cafeteira.", true);
+    });
+}
 
-            fetch("/chat", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({
-                message: `${action} cafeteira`,
-              }),
-            })
-              .then((response) => response.json())
-              .then((data) => {
-                // Adiciona a resposta ao chat
-                addMessage(data.answer, true);
-
-                if (data.answer.includes("✅")) {
-                  updateCoffeeStatus(action === "ligar");
-                }
-              })
-              .catch((error) => {
-                console.error("Erro:", error);
-                addMessage("❌ Erro ao controlar a cafeteira.", true);
-              });
-          });
-        }
 
         // Função para atualizar o status da cafeteira
         function updateCoffeeStatus(isOn) {
@@ -1727,93 +1719,98 @@
 
       // Funções de status
       function updateStatus() {
-        fetch("/status")
-          .then((response) => response.json())
-          .then((data) => {
-            // Atualiza status do Arduino
-            const systemStatusIndicator =
-              document.getElementById("system-status");
-            const systemStatusText =
-              document.getElementById("system-status-text");
-            const arduinoStatusIndicator =
-              document.getElementById("arduino-status");
-            const arduinoStatusText = document.getElementById(
-              "arduino-status-text"
-            );
-            const lastActivity = document.getElementById("lastActivity");
-            arduinoStatusIndicator.className = `status-indicator status-${
-              data.arduino_connected ? "online" : "offline"
-            }`;
-            arduinoStatusText.textContent = `Arduino: ${
-              data.arduino_connected ? "Conectado" : "Desconectado"
-            }`;
+  fetch("/status")
+    .then((response) => response.json())
+    .then((data) => {
+      // Update Arduino status
+      const systemStatusIndicator = document.getElementById("system-status");
+      const systemStatusText = document.getElementById("system-status-text");
+      const arduinoStatusIndicator = document.getElementById("arduino-status");
+      const arduinoStatusText = document.getElementById("arduino-status-text");
+      const lastActivity = document.getElementById("lastActivity");
+      const coffeeTemperature = document.getElementById("coffee-temperature");
+      const temperatureBar = document.getElementById("temperature-bar");
 
-            // Desabilita o botão de ligar se o Arduino estiver desconectado
-            const powerOnButton = document.querySelector(
-              ".control-button.power-on"
-            );
-            if (data.last_activity) {
-              lastActivity.textContent = `Última Atividade: ${data.last_activity}`;
-            }
-            if (powerOnButton) {
-              powerOnButton.disabled = !data.arduino_connected;
-              if (!data.arduino_connected) {
-                powerOnButton.style.opacity = "0.5";
-                powerOnButton.title = "Arduino não conectado";
-              } else {
-                powerOnButton.style.opacity = "1";
-                powerOnButton.title = "Ligar Cafeteira";
-              }
-            }
+      // Arduino status update
+      arduinoStatusIndicator.className = `status-indicator status-${data.arduino_connected ? "online" : "offline"}`;
+      arduinoStatusText.textContent = `Arduino: ${data.arduino_connected ? "Conectado" : "Desconectado"}`;
 
-            // ... resto do código de atualização de status ...
-          })
-          .catch((error) => {
-            console.error("Erro ao atualizar status:", error);
-          });
+      // System status update
+      systemStatusIndicator.className = `status-indicator status-${data.system_status === "online" ? "online" : "offline"}`;
+      systemStatusText.textContent = `Sistema: ${data.system_status === "online" ? "Funcionando" : "Parado"}`;
+
+      // Last activity update
+      const currentTime = new Date().toLocaleTimeString("pt-BR", {
+        hour: "2-digit",
+        minute: "2-digit"
+      });
+      lastActivity.textContent = `Última Atividade: ${currentTime}`;
+
+      // Temperature update
+      if (data.temperature) {
+        coffeeTemperature.textContent = `${data.temperature}°C`;
+        const percentage = Math.min(Math.max((data.temperature / 100) * 100, 0), 100);
+        temperatureBar.style.width = `${percentage}%`;
+
+        // Temperature bar color update
+        if (data.temperature < 40) {
+          temperatureBar.style.backgroundColor = "#3498db"; // blue for cold
+        } else if (data.temperature < 70) {
+          temperatureBar.style.backgroundColor = "#f1c40f"; // yellow for warm
+        } else {
+          temperatureBar.style.backgroundColor = "#e74c3c"; // red for hot
+        }
       }
 
+      // Power button state update
+      const powerOnButton = document.querySelector(".control-button.power-on");
+      const powerOffButton = document.querySelector(".control-button.power-off");
+
+      if (powerOnButton && powerOffButton) {
+        const disabled = !data.arduino_connected;
+        powerOnButton.disabled = disabled;
+        powerOffButton.disabled = disabled;
+
+        powerOnButton.style.opacity = disabled ? "0.5" : "1";
+        powerOffButton.style.opacity = disabled ? "0.5" : "1";
+        powerOnButton.title = disabled ? "Arduino não conectado" : "Ligar Cafeteira";
+        powerOffButton.title = disabled ? "Arduino não conectado" : "Desligar Cafeteira";
+      }
+    })
+    .catch((error) => {
+      console.error("Erro ao atualizar status:", error);
+    });
+}
       // Funções de controle
       function controlCoffee(action) {
-        // Verifica primeiro se o Arduino está conectado
-        checkArduinoConnection().then((isArduinoConnected) => {
-          if (!isArduinoConnected) {
-            addMessage(
-              "⚠️ Não é possível controlar a cafeteira pois o Arduino não está conectado.",
-              true
-            );
-            return;
-          }
+  // Add user message to chat first
+  addMessage(`${action} cafeteira`, false);
 
-          // Adiciona a mensagem do usuário ao chat
-          addMessage(`${action} cafeteira`, false);
-
-          fetch("/chat", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              message: `${action} cafeteira`,
-            }),
-          })
-            .then((response) => response.json())
-            .then((data) => {
-              // Adiciona a resposta ao chat
-              addMessage(data.answer, true);
-
-              if (data.answer.includes("✅")) {
-                // Se a ação for "ligar", isOn será true. Se for "desligar", isOn será false
-                const isOn = action === "ligar";
-                updateCoffeeStatus(isOn);
-              }
-            })
-            .catch((error) => {
-              console.error("Erro:", error);
-              addMessage("❌ Erro ao controlar a cafeteira.", true);
-            });
-        });
+  fetch("/chat", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      message: `${action} cafeteira`,
+    }),
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      // Add bot response to chat
+      addMessage(data.answer, true);
+      
+      if (data.answer.includes("✅")) {
+        const isOn = action === "ligar";
+        updateCoffeeStatus(isOn);
+        updateStatus();
       }
+    })
+    .catch((error) => {
+      console.error("Erro:", error);
+      addMessage("❌ Erro ao controlar a cafeteira.", true);
+    });
+}
 
       // Funções de chat
       async function sendMessage() {
@@ -1998,6 +1995,9 @@
           }
         }
       });
+
+      updateStatus();
+      statusUpdateInterval = setInterval(updateStatus, 5000);
     </script>
   </body>
 </html>
