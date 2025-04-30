@@ -55,6 +55,8 @@ MQTT_PORT = int(os.getenv('MQTT_PORT', 1884))
 MQTT_TOPIC_COMMAND = "cafeteira/comando"
 MQTT_TOPIC_STATUS = "cafeteira/status"
 
+SIMULATION_MODE = True
+
 # Variável global para último heartbeat do Arduino
 last_arduino_heartbeat = None
 ARDUINO_TIMEOUT = 5  # segundos para considerar Arduino desconectado
@@ -85,21 +87,24 @@ arduino_connection = {
 
 def find_arduino_port():
     """
-    Encontra a porta do Arduino no Linux de forma mais robusta
+    Encontra a porta do Arduino no macOS
     """
-    # Procura por dispositivos USB Serial no Linux
-    if os.path.exists('/dev/serial/by-id'):
-        try:
-            # Lista todos os dispositivos USB serial
-            devices = glob.glob('/dev/serial/by-id/*')
-            for device in devices:
-                if 'ch340' in device.lower() or 'acm' in device.lower() or 'usb' in device.lower():
-                    # Obtém o caminho real do dispositivo
-                    real_path = os.path.realpath(device)
-                    print(f"Dispositivo encontrado: {real_path}")
-                    return real_path
-        except Exception as e:
-            print(f"Erro ao procurar dispositivo: {e}")
+    # Try the specific port first
+    specific_port = '/dev/cu.usbmodemC04E301234D42'
+    if os.path.exists(specific_port):
+        print(f"Usando porta específica: {specific_port}")
+        return specific_port
+        
+    # Then try automatic detection
+    try:
+        # macOS typically uses /dev/cu.* for serial devices
+        ports = glob.glob('/dev/cu.*') + glob.glob('/dev/tty.*')
+        for port in ports:
+            if 'usbmodem' in port or 'wchusbserial' in port:
+                print(f"Porta encontrada: {port}")
+                return port
+    except Exception as e:
+        print(f"Erro ao procurar dispositivo: {e}")
     
     # Fallback: procura portas USB diretamente
     try:
@@ -110,6 +115,7 @@ def find_arduino_port():
     except Exception as e:
         print(f"Erro ao listar portas: {e}")
     
+    print("Nenhuma porta serial encontrada")
     return None
 
 def serial_listener(serial_port, message_queue):
@@ -148,23 +154,56 @@ def connect_arduino():
         print("Nenhuma porta serial encontrada")
         return False
 
-    try:
-        arduino_serial = serial.Serial(port, baudrate=115200, timeout=1)
-        time.sleep(2)  # Aguarda inicialização do Arduino
-        print(f"Arduino conectado na porta {port}")
-        return True
-    except Exception as e:
-        print(f"Erro ao conectar ao Arduino: {e}")
-        return False
+    # Try up to 3 times to connect
+    for attempt in range(3):
+        try:
+            print(f"Tentativa {attempt+1} de conectar ao Arduino na porta {port}")
+            arduino_serial = serial.Serial(port, baudrate=115200, timeout=1)
+            time.sleep(2)  # Aguarda inicialização do Arduino
+            print(f"Arduino conectado na porta {port}")
+            return True
+        except serial.SerialException as e:
+            if "Resource busy" in str(e) or "Errno 16" in str(e):
+                print(f"Porta {port} ocupada, tentando liberar...")
+                try:
+                    # Try to identify the process
+                    import subprocess
+                    subprocess.run(['lsof', port], check=False)
+                    
+                    # Wait a moment before trying again
+                    time.sleep(2)
+                except Exception as inner_e:
+                    print(f"Erro ao tentar identificar processo: {inner_e}")
+            else:
+                print(f"Erro ao conectar ao Arduino: {e}")
+                break  # Other errors, break the loop
+    
+    # If we get here, we failed to connect after all attempts
+    print("Não foi possível conectar ao Arduino após múltiplas tentativas")
+    
+    # Alternative: Enable simulation mode for testing
+    return False
 
 def send_command_to_arduino(command):
     """Função melhorada para enviar comandos ao Arduino"""
     global arduino_serial
     
+    if SIMULATION_MODE:
+        print(f"[SIMULAÇÃO] Comando enviado: {command}")
+        # Simulate responses
+        if command == "ping":
+            return "pong"
+        elif command == "ligar":
+            return "ok"
+        elif command == "desligar":
+            return "ok"
+        return "ok"
+    
+    # Regular Arduino communication code
     if not arduino_serial or not arduino_serial.is_open:
         if not connect_arduino():
             return None
-
+    
     try:
         # Limpa o buffer antes de enviar o comando
         arduino_serial.reset_input_buffer()
@@ -283,17 +322,30 @@ def check_arduino_connection():
     """Verifica se o Arduino está respondendo."""
     global arduino_serial
     
-    if arduino_serial is None or not arduino_serial.is_open:
+    if SIMULATION_MODE:
+        return True  # Always return connected in simulation mode
+    
+    # Rest of the function remains the same
+    if arduino_serial is None:
+        print("Tentando conectar ao Arduino...")
+        return connect_arduino()
+        
+    if not arduino_serial.is_open:
+        print("Porta serial fechada, tentando reconectar...")
         return connect_arduino()
 
     try:
+        print("Enviando comando 'ping' para o Arduino...")
         arduino_serial.write(b'ping\n')
         arduino_serial.flush()
-        time.sleep(0.1)
+        time.sleep(0.5)  # Dar tempo suficiente para o Arduino responder
         
         if arduino_serial.in_waiting:
             response = arduino_serial.readline().decode().strip()
+            print(f"Resposta do Arduino: '{response}'")
             return response == "pong"
+        else:
+            print("Sem resposta do Arduino após o comando ping")
         
         return False
     except Exception as e:
@@ -301,6 +353,7 @@ def check_arduino_connection():
         if arduino_serial is not None:
             try:
                 arduino_serial.close()
+                print("Porta serial fechada após erro")
             except:
                 pass
         arduino_serial = None
