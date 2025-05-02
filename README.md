@@ -1,6 +1,3 @@
-https://www.dropbox.com/scl/fi/o6b2dbmjqmdjqysgmoycz/arduinoIaIoT.mp4?rlkey=b25p7i4bliozca8pq5xydcoc3&st=gm2l1ts4&dl=0
-
-
 # CoffeeAI Control - Documentação Técnica Completa
 
 ![Imagem](https://github.com/estevam5s/cafeteira-ia-iot/blob/main/img/DALL%C2%B7E%202025-03-26%2015.51.31%20-%20A%20conceptual%20design%20of%20an%20IoT%20coffee%20maker%20project%20featuring%20advanced%20AI%20integration.%20The%20image%20includes%20a%20central%20monitor%20displaying%20a%20user-friendly%20.webp)
@@ -46,7 +43,18 @@ coffee-control/
     └── architecture.mmd   # Diagrama de arquitetura
 ```
 
-![Video](https://www.dropbox.com/scl/fi/o6b2dbmjqmdjqysgmoycz/arduinoIaIoT.mp4?rlkey=b25p7i4bliozca8pq5xydcoc3&st=f3cbyk98&dl=0)
+## Demonstração do Sistema
+
+O vídeo abaixo demonstra o funcionamento completo da integração entre Arduino, MQTT e interface web:
+
+<video width="100%" height="auto" controls autoplay preload="metadata" poster="https://via.placeholder.com/1280x720.png?text=Carregando+Vídeo">
+  <source src="https://www.dropbox.com/scl/fi/o6b2dbmjqmdjqysgmoycz/arduinoIaIoT.mp4?rlkey=b25p7i4bliozca8pq5xydcoc3&st=gm2l1ts4&dl=1" type="video/mp4">
+  <p>Seu navegador não suporta o elemento de vídeo. <a href="https://www.dropbox.com/scl/fi/o6b2dbmjqmdjqysgmoycz/arduinoIaIoT.mp4?rlkey=b25p7i4bliozca8pq5xydcoc3&st=gm2l1ts4&dl=1">Clique aqui para baixar o vídeo</a>.</p>
+</video>
+
+> **Nota:** O vídeo acima deve carregar automaticamente. Se não estiver visível, seu navegador pode ter restrições para reprodução de mídia ou visualização de conteúdo do Dropbox. Nesse caso, você pode [baixar o vídeo diretamente](https://www.dropbox.com/scl/fi/o6b2dbmjqmdjqysgmoycz/arduinoIaIoT.mp4?rlkey=b25p7i4bliozca8pq5xydcoc3&st=gm2l1ts4&dl=1) e assistir localmente.
+
+**Conteúdo do vídeo:** A demonstração mostra o funcionamento prático do sistema CoffeeAI Control, incluindo o controle da cafeteira via MQTT, a resposta do Arduino ao receber comandos, e a interface web interagindo com todo o sistema em tempo real.
 
 ## 3. Requisitos de Hardware
 
