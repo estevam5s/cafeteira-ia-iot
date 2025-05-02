@@ -43,6 +43,8 @@ coffee-control/
     └── architecture.mmd   # Diagrama de arquitetura
 ```
 
+![Video](https://www.dropbox.com/scl/fi/o6b2dbmjqmdjqysgmoycz/arduinoIaIoT.mp4?rlkey=b25p7i4bliozca8pq5xydcoc3&st=f3cbyk98&dl=0)
+
 ## 3. Requisitos de Hardware
 
 ### 3.1 Componentes Principais
