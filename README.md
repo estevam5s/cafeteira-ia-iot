@@ -47,9 +47,9 @@ coffee-control/
 
 O vídeo abaixo demonstra o funcionamento completo da integração entre Arduino, MQTT e interface web:
 
-<video width="100%" height="auto" controls autoplay preload="metadata" poster="https://via.placeholder.com/1280x720.png?text=Carregando+Vídeo">
+<video width="100%" controls autoplay>
   <source src="https://www.dropbox.com/scl/fi/o6b2dbmjqmdjqysgmoycz/arduinoIaIoT.mp4?rlkey=b25p7i4bliozca8pq5xydcoc3&st=gm2l1ts4&dl=1" type="video/mp4">
-  <p>Seu navegador não suporta o elemento de vídeo. <a href="https://www.dropbox.com/scl/fi/o6b2dbmjqmdjqysgmoycz/arduinoIaIoT.mp4?rlkey=b25p7i4bliozca8pq5xydcoc3&st=gm2l1ts4&dl=1">Clique aqui para baixar o vídeo</a>.</p>
+  Seu navegador não suporta o elemento de vídeo.
 </video>
 
 > **Nota:** O vídeo acima deve carregar automaticamente. Se não estiver visível, seu navegador pode ter restrições para reprodução de mídia ou visualização de conteúdo do Dropbox. Nesse caso, você pode [baixar o vídeo diretamente](https://www.dropbox.com/scl/fi/o6b2dbmjqmdjqysgmoycz/arduinoIaIoT.mp4?rlkey=b25p7i4bliozca8pq5xydcoc3&st=gm2l1ts4&dl=1) e assistir localmente.
