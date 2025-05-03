@@ -1,7 +1,6 @@
 # CoffeeAI Control - Documentação Técnica Completa
 
-![Imagem](https://github.com/estevam5s/cafeteira-ia-iot/blob/main/img/DALL%C2%B7E%202025-03-26%2015.51.31%20-%20A%20conceptual%20design%20of%20an%20IoT%20coffee%20maker%20project%20featuring%20advanced%20AI%20integration.%20The%20image%20includes%20a%20central%20monitor%20displaying%20a%20user-friendly%20.webp)
-
+![alt text](<img/DALL·E 2025-03-26 15.51.52 - A futuristic and advanced IoT coffee maker with AI integration in a high-tech coffee shop setting. The central monitor displays an intricate, cutting-.webp>)
 ## 1. Visão Geral
 O CoffeeAI Control é um sistema inteligente de controle de cafeteira que integra IoT, IA conversacional e interface web para proporcionar uma experiência avançada no preparo de café. Combinando hardware e software, o sistema permite controlar uma cafeteira remotamente através de comandos de texto, monitorar seu status em tempo real e receber recomendações personalizadas.
 
@@ -47,8 +46,10 @@ coffee-control/
 
 O vídeo abaixo demonstra o funcionamento completo da integração entre Arduino, MQTT e interface web:
 
+![](./video/arduinoIaIoT.mp4)
+
 <video width="100%" controls autoplay>
-  <source src="https://www.dropbox.com/scl/fi/o6b2dbmjqmdjqysgmoycz/arduinoIaIoT.mp4?rlkey=b25p7i4bliozca8pq5xydcoc3&st=gm2l1ts4&dl=1" type="video/mp4">
+  <source src="./video/arduinoIaIoT.mp4" type="video/mp4">
   Seu navegador não suporta o elemento de vídeo.
 </video>
 
