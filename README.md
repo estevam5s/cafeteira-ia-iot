@@ -48,12 +48,14 @@ O vídeo abaixo demonstra o funcionamento completo da integração entre Arduino
 
 ### 🎥 Demonstração do Projeto
 
-[Clique aqui para assistir ao vídeo da Cafeteira IoT](https://github.com/estevam5s/cafeteira-ia-iot/blob/main/video/arduinoIaIoT.mov)
+<!-- [Clique aqui para assistir ao vídeo da Cafeteira IoT](https://github.com/estevam5s/cafeteira-ia-iot/blob/main/video/arduinoIaIoT.mov)
 <video controls src="video/arduinoIaIoT.mov" title="Video"></video>
 <video width="100%" controls autoplay>
   <source src="./video/arduinoIaIoT.mov" type="video/mp4">
   Seu navegador não suporta o elemento de vídeo.
-</video>
+</video> -->
+
+https://github.com/user-attachments/assets/53ed8cdb-a47d-4fe5-9fe0-ce418ea5d6df
 
 > **Nota:** O vídeo acima deve carregar automaticamente. Se não estiver visível, seu navegador pode ter restrições para reprodução de mídia ou visualização de conteúdo do Dropbox. Nesse caso, você pode [baixar o vídeo diretamente](https://www.dropbox.com/scl/fi/o6b2dbmjqmdjqysgmoycz/arduinoIaIoT.mp4?rlkey=b25p7i4bliozca8pq5xydcoc3&st=gm2l1ts4&dl=1) e assistir localmente.
 
