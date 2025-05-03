@@ -1,3 +1,5 @@
+https://www.dropbox.com/scl/fi/o6b2dbmjqmdjqysgmoycz/arduinoIaIoT.mp4?rlkey=b25p7i4bliozca8pq5xydcoc3&e=1&st=dkonbzqc&dl=0
+
 # CoffeeAI Control - Documentação Técnica Completa
 
 ![Imagem](https://github.com/estevam5s/cafeteira-ia-iot/blob/main/img/DALL%C2%B7E%202025-03-26%2015.51.31%20-%20A%20conceptual%20design%20of%20an%20IoT%20coffee%20maker%20project%20featuring%20advanced%20AI%20integration.%20The%20image%20includes%20a%20central%20monitor%20displaying%20a%20user-friendly%20.webp)
