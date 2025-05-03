@@ -46,7 +46,9 @@ coffee-control/
 
 O vídeo abaixo demonstra o funcionamento completo da integração entre Arduino, MQTT e interface web:
 
-![](./video/arduinoIaIoT.mp4)
+### 🎥 Demonstração do Projeto
+
+[Clique aqui para assistir ao vídeo da Cafeteira IoT](https://github.com/estevam5s/cafeteira-ia-iot/blob/main/video/arduinoIaIoT.mp4)
 
 <video width="100%" controls autoplay>
   <source src="./video/arduinoIaIoT.mp4" type="video/mp4">
